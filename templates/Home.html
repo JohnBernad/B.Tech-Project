@@ -1,0 +1,3677 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Include jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Include Select2 plugin -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <title>Flight Search</title>
+    <script>
+      // Calculate the page loading time
+      var loadTime =
+        window.performance.timing.domContentLoadedEventEnd -
+        window.performance.timing.navigationStart;
+
+      // Initialize Select2 plugin for searchable dropdowns
+      $(document).ready(function () {
+        // Clone options from 'from_place' to 'to_place'
+        $("#from_place option").clone().appendTo("#to_place");
+
+        // Initialize Select2 for both 'from_place' and 'to_place'
+        $(".select2").select2();
+      });
+    </script>
+
+    <script>
+      var AwesomeCharts;
+      (function (AwesomeCharts) {
+        var Gauge = (function () {
+          function Gauge(gaugeProperties) {
+            this.nmspace = "http://www.w3.org/2000/svg";
+            this.properties = gaugeProperties;
+            this.boxWidth =
+              2 * (this.properties.radius + this.properties.gaugeWidth);
+            this.boxHeight =
+              this.properties.radius + this.properties.gaugeWidth + 67;
+            this.center = this.properties.radius + this.properties.gaugeWidth;
+            this.x = this.properties.radius / Math.sqrt(2);
+            this.shortSide = this.x / 10;
+            this.relativeZero = 135;
+            this.instantiate();
+          }
+
+          Gauge.prototype.easeinCubic = function (t) {
+            return t < 0.5
+              ? 16 * t * t * t * t * t
+              : 1 + 16 * --t * t * t * t * t;
+          };
+
+          Gauge.prototype.timerForZero = function (t) {
+            return t > 0.5 ? 1 - t * t : t * t + 0.0000000005;
+          };
+
+          Gauge.prototype.instantiate = function () {
+            this.svg = document.createElementNS(this.nmspace, "svg");
+            this.svg.setAttributeNS(null, "width", this.boxWidth.toString());
+            this.svg.setAttributeNS(
+              null,
+              "height",
+              (this.boxHeight - 66 + this.shortSide).toString()
+            );
+            this.svg.setAttributeNS(
+              null,
+              "viewBox",
+              "0 -20 " +
+                this.boxWidth +
+                " " +
+                (this.boxHeight + this.shortSide - 11)
+            );
+            if (this.properties.percentage > 100) {
+              this.properties.percentage = 100;
+            }
+            if (this.properties.percentage < 0) {
+              this.properties.percentage = 0;
+            }
+          };
+
+          Gauge.prototype.getangleFromPercentage = function (percentage) {
+            var prcnt =
+              !!percentage && percentage >= 0 && percentage <= 100
+                ? percentage
+                : 100;
+            return (Math.PI * prcnt) / 50;
+          };
+
+          Gauge.prototype.createMarker = function () {
+            this.marker = document.createElementNS(this.nmspace, "path");
+            this.marker.setAttributeNS(null, "fill", "#7f8c8d");
+            this.marker.setAttributeNS(
+              null,
+              "d",
+              "M" +
+                this.center +
+                " " +
+                this.center +
+                "l" +
+                this.shortSide +
+                " 0 l" +
+                (this.x - this.shortSide) +
+                " " +
+                this.x +
+                " l-" +
+                this.x +
+                " -" +
+                (this.x - this.shortSide) +
+                "l0 -" +
+                this.shortSide +
+                "z"
+            );
+            this.marker.setAttributeNS(
+              null,
+              "transform",
+              "rotate(" +
+                this.relativeZero +
+                ", " +
+                this.center +
+                ", " +
+                this.center +
+                ")"
+            );
+            this.svg.appendChild(this.marker);
+          };
+
+          Gauge.prototype.getArc = function (
+            x,
+            y,
+            r,
+            startAngle,
+            endAngle,
+            color,
+            animateTime
+          ) {
+            var arcObj = document.createElementNS(this.nmspace, "path"),
+              start = startAngle,
+              radius = r + this.properties.gaugeWidth / 2,
+              end = endAngle - 0.000001,
+              cosStart = Math.cos(start),
+              sinStart = Math.sin(start),
+              cosEnd = Math.cos(end),
+              sinEnd = Math.sin(end),
+              longArc = endAngle - startAngle < Math.PI ? 0 : 1,
+              path,
+              that = this;
+            arcObj.setAttributeNS(null, "fill", "#FFF");
+            arcObj.setAttributeNS(null, "stroke", color);
+            arcObj.setAttributeNS(
+              null,
+              "stroke-width",
+              this.properties.gaugeWidth.toString()
+            );
+            arcObj.setAttributeNS(null, "fill-opacity", "0");
+            this.svg.appendChild(arcObj);
+            if (!!animateTime) {
+              var FrameRefreshRate = 1000 / 60,
+                startTime = FrameRefreshRate,
+                stopAngle =
+                  start +
+                  this.easeinCubic(startTime / animateTime) * (end - start),
+                timerId = window.setInterval(function () {
+                  if (stopAngle >= end) {
+                    clearInterval(timerId);
+
+                    path =
+                      "M " +
+                      (x + radius * cosStart) +
+                      ", " +
+                      (y + radius * sinStart) +
+                      " A " +
+                      radius +
+                      "," +
+                      radius +
+                      " 0 " +
+                      longArc +
+                      ", 1 " +
+                      (x + radius * cosEnd) +
+                      ", " +
+                      (y + radius * sinEnd);
+                  } else {
+                    path =
+                      "M " +
+                      (x + radius * cosStart) +
+                      ", " +
+                      (y + radius * sinStart) +
+                      " A " +
+                      radius +
+                      "," +
+                      radius +
+                      " 0 " +
+                      (stopAngle - startAngle < Math.PI ? 0 : 1) +
+                      ", 1 " +
+                      (x + radius * Math.cos(stopAngle)) +
+                      ", " +
+                      (y + radius * Math.sin(stopAngle));
+                  }
+                  arcObj.setAttributeNS(null, "d", path);
+                  startTime += FrameRefreshRate;
+                  stopAngle =
+                    start +
+                    that.easeinCubic(startTime / animateTime) * (end - start);
+                }, FrameRefreshRate);
+            } else {
+              path =
+                "M " +
+                (x + radius * cosStart) +
+                ", " +
+                (y + radius * sinStart) +
+                " A " +
+                radius +
+                "," +
+                radius +
+                " 0 " +
+                longArc +
+                ", 1 " +
+                (x + radius * cosEnd) +
+                ", " +
+                (y + radius * sinEnd);
+              arcObj.setAttributeNS(null, "d", path);
+            }
+            return arcObj;
+          };
+
+          Gauge.prototype.getRadiansFromDegrees = function (deg) {
+            return deg * (Math.PI / 180);
+          };
+
+          Gauge.prototype.getValidatedColor = function (clr) {
+            return !!clr &&
+              clr.match(/^#(?:[1-9 A-F a-f]{3,3}|[1-9 A-F a-f]{6,6})/g)
+              ? clr
+              : "#000000";
+          };
+
+          Gauge.prototype.animateMarker = function () {
+            var end = (this.properties.percentage / 100) * 180,
+              start = 0,
+              timer = this.easeinCubic,
+              timerTwo = this.timerForZero,
+              that = this;
+            if (!!this.properties.animationTime) {
+              var FrameRefreshRate = 1000 / 60,
+                startTime = FrameRefreshRate,
+                stopAngle =
+                  start +
+                  timer(startTime / this.properties.animationTime) *
+                    (end - start),
+                timerId = setInterval(function () {
+                  if (stopAngle >= end) {
+                    clearInterval(timerId);
+                    that.marker.setAttributeNS(
+                      null,
+                      "transform",
+                      "rotate(" +
+                        (that.relativeZero + end) +
+                        ", " +
+                        that.center +
+                        ", " +
+                        that.center +
+                        ")"
+                    );
+                  } else {
+                    that.marker.setAttributeNS(
+                      null,
+                      "transform",
+                      "rotate(" +
+                        (that.relativeZero + stopAngle) +
+                        ", " +
+                        that.center +
+                        ", " +
+                        that.center +
+                        ")"
+                    );
+                  }
+                  startTime += FrameRefreshRate;
+                  stopAngle =
+                    start +
+                    timer(startTime / that.properties.animationTime) *
+                      (end - start);
+                }, FrameRefreshRate);
+            } else {
+              this.marker.setAttributeNS(
+                null,
+                "transform",
+                "rotate(" +
+                  (this.relativeZero + end) +
+                  ", " +
+                  this.center +
+                  ", " +
+                  this.center +
+                  ")"
+              );
+            }
+          };
+
+          Gauge.prototype.RenderChart = function (target) {
+            var theta1 = Math.PI,
+              theta2 = this.getRadiansFromDegrees(223),
+              theta3 = this.getRadiansFromDegrees(227),
+              theta4 = this.getRadiansFromDegrees(268),
+              theta5 = this.getRadiansFromDegrees(272),
+              theta6 = this.getRadiansFromDegrees(313),
+              theta7 = this.getRadiansFromDegrees(317),
+              theta8 = this.getRadiansFromDegrees(360),
+              that = this;
+
+            document.querySelector(target).appendChild(this.svg);
+            var animationTime = 400;
+
+            this.getArc(
+              this.center,
+              this.center,
+              this.properties.radius,
+              theta1,
+              theta2,
+              "#3BA316",
+              animationTime
+            );
+            this.getArc(
+              this.center,
+              this.center,
+              this.properties.radius,
+              theta3,
+              theta4,
+              "#FCD116",
+              animationTime
+            );
+            this.getArc(
+              this.center,
+              this.center,
+              this.properties.radius,
+              theta5,
+              theta6,
+              "#FF8C00",
+              animationTime
+            );
+            this.getArc(
+              this.center,
+              this.center,
+              this.properties.radius,
+              theta7,
+              theta8,
+              "#E81123",
+              animationTime
+            );
+
+            window.setTimeout(function () {
+              that.createMarker();
+              that.animateMarker();
+              // Add text inside the gauge chart based on the percentage range
+              var gaugeText = "";
+              if (
+                that.properties.percentage >= 0 &&
+                that.properties.percentage < 20
+              ) {
+                gaugeText = "Cheap";
+              } else if (
+                that.properties.percentage >= 20 &&
+                that.properties.percentage < 40
+              ) {
+                gaugeText = "Good";
+              } else if (
+                that.properties.percentage >= 40 &&
+                that.properties.percentage < 60
+              ) {
+                gaugeText = "Fair";
+              } else if (
+                that.properties.percentage >= 60 &&
+                that.properties.percentage < 80
+              ) {
+                gaugeText = "High";
+              } else {
+                gaugeText = "Very High";
+              }
+              // Append the text inside the gauge chart
+              var gaugeTextElement = document.createElementNS(
+                that.nmspace,
+                "text"
+              );
+              gaugeTextElement.setAttributeNS(
+                null,
+                "x",
+                that.center.toString()
+              );
+              gaugeTextElement.setAttributeNS(
+                null,
+                "y",
+                (that.center + 30).toString()
+              );
+              gaugeTextElement.setAttributeNS(null, "text-anchor", "middle");
+              gaugeTextElement.setAttributeNS(null, "fill", "#EF7954");
+              gaugeTextElement.setAttributeNS(null, "font-size", "30px");
+              gaugeTextElement.setAttributeNS(
+                null,
+                "font-family",
+                "Segoe ui light"
+              );
+              gaugeTextElement.textContent = gaugeText;
+              that.svg.appendChild(gaugeTextElement);
+            }, animationTime);
+          };
+
+          return Gauge;
+        })();
+        AwesomeCharts.Gauge = Gauge;
+      })(AwesomeCharts || (AwesomeCharts = {}));
+    </script>
+
+    <style>
+      .background {
+        background-image: url("{{ url_for('static', filename='bg2.jpg') }}");
+        background-size: cover;
+        background-attachment: fixed;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      h1 {
+        text-align: center;
+        color: #000000;
+        box-sizing: border-box;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 300px;
+      }
+
+      form {
+        width: 400px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 70px;
+
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="text"],
+      input[type="date"],
+      select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+      }
+
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        color: #fff;
+        background-color: #007bff;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+
+      input[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #f9f9f9;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+      }
+
+      th {
+        background-color: #f2f2f2;
+        text-align: center;
+      }
+
+      tr:hover {
+        background-color: #c8c8c8;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      tr:nth-child(even):hover {
+        background-color: #c8c8c8;
+      }
+
+      /* Animation for flying airplane */
+      .loading-animation {
+        display: none; /* Initially hidden */
+        position: absolute;
+        top: 400px; /* Adjust as needed */
+        left: -10px; /* Adjust as needed */
+        animation: fly-right 4s linear infinite;
+      }
+
+      :root {
+        --animation-duration: 30000ms; /* Default duration */
+      }
+
+      /* Use the CSS variable in the animation keyframes */
+      @keyframes fly-right {
+        0% {
+          left: 10px;
+        }
+        100% {
+          left: calc(100% - 100px);
+        }
+      }
+
+      /* Set the animation duration based on the page loading time */
+      .loading-animation {
+        animation: fly-right var(--animation-duration) linear infinite;
+      }*/
+    </style>
+
+    <style>
+      .container {
+        margin: 0 auto;
+      }
+
+      .rectangle {
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        z-index: 9999;
+      }
+
+      .form-container {
+        display: grid;
+        grid-template-columns: 1fr auto; /* One fraction for forms, auto for button */
+        position: relative;
+      }
+
+      /* Toggle Button Styles */
+      .btn-toggle {
+        position: relative;
+        border: none;
+        width: 2.5rem;
+        height: 1.25rem;
+        border-radius: 0.625rem; /* half the height */
+        background: #6b7381;
+        cursor: pointer;
+      }
+      .btn-toggle.active {
+        background-color: #29b5a8; /* Change to your brand primary color */
+      }
+      .btn-toggle .handle {
+        position: absolute;
+        top: 50%;
+        left: 0.25rem; /* Half of the handle width */
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 50%;
+        background: #fff;
+        transform: translateY(-50%);
+        transition: left 0.25s;
+      }
+      .btn-toggle.active .handle {
+        left: 1.25rem;
+      }
+    </style>
+  </head>
+  <body class="background">
+    <br /><br /><br />
+    <center><h1>Flight Search</h1></center>
+    {% if not request.path.endswith('/search') %} {% if not
+    request.path.endswith('/prediction_search') %}
+
+    <div id="form-container" class="form-container">
+      <div class="rectangle">
+        <table>
+          <tr>
+            <td><span class="text">Prediction Mode:</span></td>
+            <td>
+              <button
+                type="button"
+                id="toggle-button"
+                class="btn-toggle"
+                data-toggle="button"
+                aria-pressed="false"
+                autocomplete="off"
+              >
+                <div class="handle"></div>
+              </button>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <form
+        id="flight-search-form"
+        class="container"
+        action="/search"
+        method="post"
+      >
+        <label for="from_place">From:</label>
+        <select
+          id="from_place"
+          name="from_place"
+          class="select2"
+          style="width: 100%"
+          required
+        >
+          <option value="">Select Departure Location</option>
+          <option value="AAR">Aarhus</option>
+          <option value="ABD">Abadan</option>
+          <option value="AEH">Abeche</option>
+          <option value="ABZ">Aberdeen</option>
+          <option value="ABR">Aberdeen (SD)</option>
+          <option value="ABJ">Abidjan</option>
+          <option value="ABI">Abilene (TX)</option>
+          <option value="AUH">Abu Dhabi - Abu Dhabi International</option>
+          <option value="ABV">
+            Abuja - Nnamdi Azikiwe International Airport
+          </option>
+          <option value="AUE">Abu Rudeis</option>
+          <option value="ABS">Abu Simbel</option>
+          <option value="ACA">Acapulco</option>
+          <option value="ACC">Accra - Kotoka International Airport</option>
+          <option value="ADA">Adana</option>
+          <option value="ADD">Addis Ababa - Bole International Airport</option>
+          <option value="ADL">Adelaide</option>
+          <option value="ADE">Aden - Aden International Airport</option>
+          <option value="ADF">Adiyaman</option>
+          <option value="AER">Adler/Sochi</option>
+          <option value="AJY">Agades</option>
+          <option value="AGA">Agadir</option>
+          <option value="SUM">Agana (Hagåtña)</option>
+          <option value="AGZ">Aggeneys</option>
+          <option value="BQN">Aguadilla</option>
+          <option value="AGU">Aguascaliente</option>
+          <option value="AMD">Ahmedabad</option>
+          <option value="AYU">Aiyura</option>
+          <option value="AJA">Ajaccio</option>
+          <option value="AXT">Akita</option>
+          <option value="CAK">Akron (OH)</option>
+          <option value="AKT">Akrotiri - RAF</option>
+          <option value="AAN">Al Ain</option>
+          <option value="AAC">Al Arish</option>
+          <option value="ALH">Albany</option>
+          <option value="ABY">Albany (GA)</option>
+          <option value="ALB">
+            Albany (NY) - Albany International Airport
+          </option>
+          <option value="LBI">Albi</option>
+          <option value="AAL">Alborg</option>
+          <option value="ABQ">Albuquerque (NM)</option>
+          <option value="ABX">Albury</option>
+          <option value="ACI">Alderney</option>
+          <option value="ALP">Aleppo</option>
+          <option value="AES">Alesund</option>
+          <option value="ALJ">Alexander Bay - Kortdoorn</option>
+          <option value="HBH">Alexandria - Borg el Arab Airport</option>
+          <option value="ALY">Alexandria - El Nhouza Airport</option>
+          <option value="ESF">Alexandria - Esler Field</option>
+          <option value="FJR">Alfujairah (Fujairah)</option>
+          <option value="AHO">Alghero Sassari</option>
+          <option value="ALG">Algiers, Houari Boumediene Airport</option>
+          <option value="AHU">Al Hoceima</option>
+          <option value="ALC">Alicante</option>
+          <option value="ASP">Alice Springs</option>
+          <option value="ADY">Alldays</option>
+          <option value="ABE">Allentown (PA)</option>
+          <option value="ALA">
+            Almaty (Alma Ata) - Almaty International Airport
+          </option>
+          <option value="LEI">Almeria</option>
+          <option value="ALF">Alta</option>
+          <option value="AAT">Altay</option>
+          <option value="ACH">Altenrhein</option>
+          <option value="AOO">Altoona (PA)</option>
+          <option value="AXS">Altus</option>
+          <option value="ASJ">Amami</option>
+          <option value="AMA">Amarillo (TX)</option>
+          <option value="AZB">Amazon Bay</option>
+          <option value="AMM">Amman - Queen Alia International Airport</option>
+          <option value="ADJ">Amman - Amman-Marka International Airport</option>
+          <option value="ATQ">Amritsar</option>
+          <option value="AMS">Amsterdam - Amsterdam Airport Schiphol</option>
+          <option value="QNB">Anand</option>
+          <option value="ANC">
+            Anchorage (AK) - Ted Stevens Anchorage International
+          </option>
+          <option value="AOI">Ancona - Ancona Falconara Airport</option>
+          <option value="ALV">Andorra La Vella - Heliport</option>
+          <option value="AXA">Anguilla</option>
+          <option value="AJN">Anjouan - Anjouan Airport</option>
+          <option value="ANK">Ankara</option>
+          <option value="ESB">Ankara - Esenboğa International Airport</option>
+          <option value="AAE">Annaba</option>
+          <option value="ARB">Ann Arbor (MI)</option>
+          <option value="NCY">Annecy</option>
+          <option value="ANB">Anniston (AL)</option>
+          <option value="AYT">Antalya</option>
+          <option value="TNR">
+            Antananarivo (Tanannarive) - Ivato International Airport
+          </option>
+          <option value="ANU">Antigua, V.C. Bird International</option>
+          <option value="ANR">Antwerp</option>
+          <option value="AOJ">Aomori</option>
+          <option value="APW">Apia - Faleolo International Airport</option>
+          <option value="ATW">Appelton/Neenah/Menasha (WI)</option>
+          <option value="AQJ">Aqaba</option>
+          <option value="AJU">Aracaju</option>
+          <option value="ARH">Arkhangelsk</option>
+          <option value="ARK">Arusha</option>
+          <option value="GPA">Araxos</option>
+          <option value="RLT">Arlit</option>
+          <option value="ACE">Arrecife/Lanzarote</option>
+          <option value="AUA">
+            Aruba - Reina Beatrix International, Oranjestad
+          </option>
+          <option value="AVL">Asheville (NC)</option>
+          <option value="ASB">
+            Ashgabat - Saparmurat Turkmenbashy Int. Airport
+          </option>
+          <option value="ASM">Asmara - Asmara International</option>
+          <option value="ASE">Aspen, (CO) - Aspen-Pitkin County Airport</option>
+          <option value="ATZ">Assiut</option>
+          <option value="TSE">Astana - Astana International Airport</option>
+          <option value="ASU">Asuncion - Asunción International Airport</option>
+          <option value="ASW">Aswan - Daraw Airport</option>
+          <option value="ATH">
+            Athens - Elefthérios Venizélos International Airport
+          </option>
+          <option value="HEW">Athens, Hellinikon Airport</option>
+          <option value="AHN">Athens (GA)</option>
+          <option value="ATO">Athens (OH)</option>
+          <option value="ATL">
+            Atlanta (GA) - Hartsfield Atlanta International Airport
+          </option>
+          <option value="ACY">
+            Atlantic City (NJ) - Atlantic City International
+          </option>
+          <option value="YAT">Attawapiskat, NT</option>
+          <option value="AKL">Auckland - Auckland International Airport</option>
+          <option value="AGB">Augsburg - Augsbur gAirport</option>
+          <option value="AGS">Augusta (GA)</option>
+          <option value="AUG">Augusta (ME) - Augusta State Airport</option>
+          <option value="AUR">Aurillac</option>
+          <option value="AUS">Austin (TX) - Austin-Bergstrom Airport</option>
+          <option value="AYW">Ayawasi</option>
+          <option value="AYQ">Ayers Rock - Connellan</option>
+          <option value="AYR">Ayr</option>
+
+          <option value="BJZ">Badajoz</option>
+          <option value="BGW">Bagdad - Baghdad International Airport</option>
+          <option value="IXB">Bagdogra</option>
+          <option value="NAS">
+            Bahamas - Lynden Pindling International Airport
+          </option>
+          <option value="BHV">Bahawalpur</option>
+          <option value="BAH">Bahrain - Bahrain International Airport</option>
+          <option value="BFL">Bakersfield (CA)</option>
+          <option value="BAK">
+            Baku - Heydar Aliyev International Airport
+          </option>
+          <option value="BNK">Ballina</option>
+          <option value="BWI">
+            Baltimore (MD) - Washington International Airport
+          </option>
+          <option value="ABM">Bamaga</option>
+          <option value="BKO">
+            Bamako - Bamako-Sénou International Airport
+          </option>
+          <option value="BBY">Bambari</option>
+          <option value="BWN">
+            Bandar Seri Begawan - Brunei International Airport
+          </option>
+          <option value="BDO">
+            Bandung - Husein Sastranegara International Airport
+          </option>
+          <option value="BLR">Bangalore</option>
+          <option value="BGU">Bangassou</option>
+          <option value="DMK">Bangkok, Don Muang</option>
+          <option value="BKK">Bangkok, Suvarnabhumi International</option>
+          <option value="BGR">Bangor (ME)</option>
+          <option value="BGF">Bangui - M'Poko International Airport</option>
+          <option value="BJL">
+            Banjul - Banjul International Airport (Yundum International)
+          </option>
+          <option value="BNP">Bannu</option>
+          <option value="BCN">Barcelona</option>
+          <option value="BLA">Barcelona</option>
+          <option value="BDU">Bardufoss</option>
+          <option value="BRI">Bari</option>
+          <option value="BZL">Barisal</option>
+          <option value="BDQ">Baroda</option>
+          <option value="BRR">Barra (the famous tidal beach landing)</option>
+          <option value="BAQ">Barranquilla</option>
+          <option value="BSL">Basel</option>
+          <option value="EAP">Basel/Mulhouse</option>
+          <option value="BSR">Basra, Basrah</option>
+          <option value="PTP">
+            Basse-Terre - Pointe-à-Pitre International Airport
+          </option>
+          <option value="SKB">
+            Basseterre - Robert L. Bradshaw International Airport
+          </option>
+          <option value="BIA">Bastia</option>
+          <option value="BTR">
+            Baton Rouge (LA) - Baton Rouge Metropolitan Airport
+          </option>
+          <option value="BYU">Bayreuth - Bindlacher-Berg</option>
+          <option value="BPT">Beaumont/Pt. Arthur (TX)</option>
+          <option value="BKW">Beckley (WV)</option>
+          <option value="EIS">Beef Island - Terrance B. Lettsome</option>
+          <option value="PEK">Beijing</option>
+          <option value="NAY">Beijing - Nanyuan Airport</option>
+          <option value="BEW">Beira</option>
+          <option value="BEY">
+            Beirut - Beirut Rafic Hariri International Airport
+          </option>
+          <option value="BEL">Belem - Val de Cans International Airport</option>
+          <option value="BHD">
+            Belfast - George Best Belfast City Airport
+          </option>
+          <option value="BFS">Belfast - Belfast International Airport</option>
+          <option value="IXG">Belgaum</option>
+          <option value="BEG">
+            Belgrad (Beograd) - Belgrade Nikola Tesla International
+          </option>
+          <option value="BZE">
+            Belize City - Philip S.W.Goldson International
+          </option>
+          <option value="BLI">Bellingham (WA)</option>
+          <option value="CNF">
+            Belo Horizonte - Tancredo Neves International Airport
+          </option>
+          <option value="BJI">Bemidji (MN)</option>
+          <option value="BEB">Benbecula</option>
+          <option value="BEN">Benghazi (Bengasi)</option>
+          <option value="BUG">Benguela</option>
+          <option value="BEH">Benton Harbour (MI)</option>
+          <option value="BBT">Berberati</option>
+          <option value="BGY">Bergamo/Milan - Orio Al Serio</option>
+          <option value="BGO">Bergen</option>
+          <option value="EGC">Bergerac - Roumanieres</option>
+          <option value="BER">Berlin</option>
+          <option value="SXF">Berlin, Schoenefeld</option>
+          <option value="TXL">Berlin, Tegel</option>
+          <option value="THF">
+            Berlin, Tempelhof (ceased operating in 2008)
+          </option>
+          <option value="BDA">Bermuda - L.F. Wade International Airport</option>
+          <option value="BRN">Berne, Bern-Belp</option>
+          <option value="ZDJ">Berne, Railway Service</option>
+          <option value="BET">Bethel (AK)</option>
+          <option value="BHO">Bhopal</option>
+          <option value="BBI">Bhubaneswar</option>
+          <option value="BIQ">Biarritz</option>
+          <option value="BIO">Bilbao</option>
+          <option value="BIL">Billings (MT)</option>
+          <option value="BLL">Billund</option>
+          <option value="BTU">Bintulu</option>
+          <option value="IRO">Biraro</option>
+          <option value="BHX">
+            Birmingham - Birmingham International Airport
+          </option>
+          <option value="BHM">Birmingham (AL)</option>
+          <option value="FRU">Bishkek - Manas International Airport</option>
+          <option value="BIS">
+            Bismarck (ND) - Bismarck Municipal Airport
+          </option>
+          <option value="BXO">
+            Bissau - Osvaldo Vieiro International Airport
+          </option>
+          <option value="BLK">Blackpool</option>
+          <option value="BLT">Blackwater</option>
+          <option value="BLZ">
+            Blantyre (Mandala) - Chileka International Airport
+          </option>
+          <option value="BHE">Blenheim</option>
+          <option value="BFN">Bloemfontein - Bloemfontein Airport</option>
+          <option value="BMI">Bloomington (IL)</option>
+          <option value="BMG">Bloomington (IN)</option>
+          <option value="BLF">Bluefield (WV)</option>
+          <option value="BVB">Boa Vista</option>
+          <option value="BOY">Bobo/Dioulasso</option>
+          <option value="BOO">Bodo</option>
+          <option value="BJV">Bodrum - Milas Airport</option>
+          <option value="BOG">
+            Bogota - El Nuevo Dorado International Airport
+          </option>
+          <option value="BOI">Boise (ID) - Boise Air Terminal</option>
+          <option value="BLQ">Bologna</option>
+          <option value="BOM">
+            Bombay (Mumbai) - Chhatrapati Shivaji International
+          </option>
+          <option value="BON">Bonaire</option>
+          <option value="YVB">Bonaventure, PQ</option>
+          <option value="BOB">Bora Bora</option>
+          <option value="BOD">Bordeaux - Bordeaux Airport</option>
+          <option value="BXS">Borrego Springs (CA)</option>
+          <option value="BOS">
+            Boston (MA) - General Edward Lawrence Logan
+          </option>
+          <option value="BYK">Bouake</option>
+          <option value="BOJ">Bourgas/Burgas</option>
+          <option value="BOH">Bournemouth</option>
+          <option value="ZBO">Bowen</option>
+          <option value="BZN">Bozeman (MT)</option>
+          <option value="BFD">Bradford/Warren (PA) /Olean (NY)</option>
+          <option value="BRD">Brainerd (MN)</option>
+          <option value="BMP">Brampton Island</option>
+          <option value="BSB">
+            Brasilia - President Juscelino Kubitschek International
+          </option>
+          <option value="BTS">Bratislava - M. R. Štefánik Airport</option>
+          <option value="BZV">Brazzaville - Maya-Maya Airport</option>
+          <option value="BRE">
+            Bremen - Bremen Airport (Flughafen Bremen)
+          </option>
+          <option value="VBS">Brescia, Montichiari</option>
+          <option value="BES">Brest</option>
+          <option value="BIV">Bria</option>
+          <option value="BDR">Bridgeport (CT)</option>
+          <option value="BGI">Bridgetown - Grantley Adams International</option>
+          <option value="BDS">Brindisi</option>
+          <option value="BNE">Brisbane</option>
+          <option value="BRS">Bristol</option>
+          <option value="BNN">Broennoeysund</option>
+          <option value="BHQ">Broken Hill</option>
+          <option value="BKX">Brookings (SD)</option>
+          <option value="BME">Broome</option>
+          <option value="BQK">Brunswick (GA)</option>
+          <option value="BRU">Brussels - Brussels Airport</option>
+          <option value="BGA">Bucaramanga</option>
+          <option value="BUH">Bucharest</option>
+          <option value="OTP">
+            Bucharest - Henri Coandă International Airport
+          </option>
+          <option value="BUD">
+            Budapest - Budapest Ferihegy International Airport
+          </option>
+          <option value="BUE">Buenos Aires</option>
+          <option value="EZE">
+            Buenos Aires, Ezeiza International Airport
+          </option>
+          <option value="AEP">Buenos Aires, Jorge Newbery</option>
+          <option value="BFO">Buffalo Range</option>
+          <option value="BUF">Buffalo/Niagara Falls (NY)</option>
+          <option value="BJM">
+            Bujumbura - Bujumbura International Airport
+          </option>
+          <option value="BUQ">Bulawayo</option>
+          <option value="BHC">Bullhead City (NV)</option>
+          <option value="BDB">Bundaberg</option>
+          <option value="BUR">Burbank (CA)</option>
+          <option value="BRL">Burlington IA</option>
+          <option value="BTV">Burlington (VT)</option>
+          <option value="BWT">Burnie (Wynyard)</option>
+          <option value="BTM">Butte (MT)</option>
+
+          <option value="CAB">Cabinda</option>
+          <option value="CAG">Cagliari</option>
+          <option value="CNS">Cairns</option>
+          <option value="CAI">Cairo - Cairo International Airport</option>
+          <option value="CJC">Calama - El Loa</option>
+          <option value="CCU">
+            Calcutta (Kolkata) - Netaji Subhas Chandra
+          </option>
+          <option value="YYC">Calgary - Calgary International Airport</option>
+          <option value="CLO">Cali</option>
+          <option value="CCJ">Calicut</option>
+          <option value="CLY">Calvi</option>
+          <option value="YCB">Cambridge Bay</option>
+          <option value="CBG">Cambrigde</option>
+          <option value="CAL">Campbeltown</option>
+          <option value="CGR">Campo Grande</option>
+          <option value="CBR">Canberra - Canberra Airport</option>
+          <option value="CUN">Cancun</option>
+          <option value="CEQ">Cannes – Mandelieu Airport</option>
+          <option value="CIW">Canouan (island) - Canouan Airport</option>
+          <option value="CPT">
+            Cape Town - Cape Town International Airport
+          </option>
+          <option value="CCS">
+            Caracas - Simón Bolívar International Airport
+          </option>
+          <option value="CWL">Cardiff - Cardiff Airport</option>
+          <option value="CLD">Carlsbad (CA)</option>
+          <option value="CVQ">Carnarvon</option>
+          <option value="CRF">Carnot</option>
+          <option value="CSN">Carson City (NV)</option>
+          <option value="CAS">Casablanca</option>
+          <option value="CMN">Casablanca, Mohamed V</option>
+          <option value="LRM">
+            Casa de Campo - La Romana International Airport
+          </option>
+          <option value="CSI">Casino</option>
+          <option value="CPR">Casper (WY)</option>
+          <option value="CST">Castaway</option>
+          <option value="CTG">
+            Cartagena - Rafael Núñez International Airport
+          </option>
+          <option value="SLU">Castries - George F. L. Charles Airport</option>
+          <option value="CTA">Catania</option>
+          <option value="CAY">Cayenne - Cayenne-Rochambeau Airport</option>
+          <option value="CBU">Cottbus - Cottbus-Drewitz Airport</option>
+          <option value="CEB">Cebu City - Mactan-Cebu International</option>
+          <option value="CDC">Cedar City (UT)</option>
+          <option value="CID">Cedar Rapids IA</option>
+          <option value="CED">Ceduna</option>
+          <option value="CES">Cessnock</option>
+          <option value="KHV">Chabarovsk (Khabarovsk)</option>
+          <option value="CMF">Chambery</option>
+          <option value="CMI">Champaign (IL)</option>
+          <option value="IXC">
+            Chandigarh - Chandigarh International Airport
+          </option>
+          <option value="CGQ">Changchun</option>
+          <option value="CHQ">Chania</option>
+          <option value="CHG">Chaoyang, Beijing - Chaoyang Airport</option>
+          <option value="CHS">Charleston (SC)</option>
+          <option value="CRW">Charleston (WV) - Yeager Airport</option>
+          <option value="CLT">Charlotte (NC)</option>
+          <option value="CHO">Charlottesville (VA)</option>
+          <option value="CXT">Charters Towers</option>
+          <option value="CHA">Chattanooga (TN)</option>
+          <option value="CTU">Chengdu - Shuangliu</option>
+          <option value="MAA">Chennai (Madras)</option>
+          <option value="CYS">Cheyenne (WY) - Cheyenne Regional Airport</option>
+          <option value="CNX">
+            Chiang Mai - Chiang Mai International Airport
+          </option>
+          <option value="QCB">Chiba City</option>
+          <option value="MDW">Chicago (IL), Midway</option>
+          <option value="ORD">
+            Chicago (IL), O'Hare International Airport
+          </option>
+          <option value="CHI">Chicago (IL)</option>
+          <option value="CZA">Chichen Itza</option>
+          <option value="CIC">Chico (CA)</option>
+          <option value="CUU">Chihuahua - Gen Fierro Villalobos</option>
+          <option value="JKH">Chios</option>
+          <option value="CIP">Chipata</option>
+          <option value="KIV">Chisinau - Chişinău International Airport</option>
+          <option value="HTA">Chita (Tschita)</option>
+          <option value="CTS">Sapporo - New Chitose Airport</option>
+          <option value="CJL">Chitral</option>
+          <option value="CGP">Chittagong</option>
+          <option value="CKG">
+            Chongqing - Jiangbei International Airport
+          </option>
+          <option value="CHC">Christchurch</option>
+          <option value="CCZ">Chub Cay</option>
+          <option value="YYQ">Churchill</option>
+          <option value="CFG">Cienfuegos - Jaime González Airport</option>
+          <option value="CVG">
+            Cincinnati (OH) - Cincinnati/Northern Kentucky Int'l
+          </option>
+          <option value="CME">Ciudad Del Carmen</option>
+          <option value="CGU">Ciudad Guayana</option>
+          <option value="CJS">Ciudad Juarez</option>
+          <option value="CEN">Ciudad Obregon</option>
+          <option value="CVM">Ciudad Victoria</option>
+          <option value="CKB">Clarksburg (WV)</option>
+          <option value="CMQ">Clermont</option>
+          <option value="CFE">Clermont Ferrand</option>
+          <option value="BKL">Cleveland (OH) , Burke Lakefront</option>
+          <option value="CLE">
+            Cleveland (OH) - Cleveland Hopkins International
+          </option>
+          <option value="CBB">Cochabamba</option>
+          <option value="COK">Cochin</option>
+          <option value="COD">Cody/Powell/Yellowstone (WY)</option>
+          <option value="KCC">Coffmann Cove (AK)</option>
+          <option value="CFS">Coffs Harbour</option>
+          <option value="CJB">Coimbatore</option>
+          <option value="CLQ">Colima</option>
+          <option value="CLL">College Station/Bryan (TX)</option>
+          <option value="KCE">Collinsville</option>
+          <option value="CGN">
+            Cologne - Cologne Airport (Flughafen Köln/Bonn)
+          </option>
+          <option value="CMB">
+            Colombo - Bandaranaike International Airport
+          </option>
+          <option value="COS">Colorado Springs (CO)</option>
+          <option value="CAE">
+            Columbia (SC) - Columbia Metropolitan Airport
+          </option>
+          <option value="CSG">Columbus (GA)</option>
+          <option value="CMH">
+            Columbus (OH) - Port Columbus International
+          </option>
+          <option value="CKY">Conakry - Conakry International Airport</option>
+          <option value="CCR">Concord (CA) - Buchanan Field</option>
+          <option value="CON">Concord (NH) - Concord Municipal Airport</option>
+          <option value="CZL">Constantine</option>
+          <option value="CND">
+            Constanta (Constanța) - Constanta Int'l Airport
+          </option>
+          <option value="CPD">Coober Pedy</option>
+          <option value="CTN">Cooktown</option>
+          <option value="OOM">Cooma</option>
+          <option value="CPH">Copenhagen - Copenhagen Airport</option>
+          <option value="COR">Cordoba</option>
+          <option value="ODB">Cordoba</option>
+          <option value="CDV">Cordova (AK)</option>
+          <option value="CFU">Corfu</option>
+          <option value="ORK">Cork</option>
+          <option value="CRP">Corpus Christi (TX)</option>
+          <option value="COO">Cotonou - Cotonou Cadjehoun Airport</option>
+          <option value="CVT">Coventry - Baginton</option>
+          <option value="CZM">Cozmel</option>
+          <option value="CGA">Craig (AK)</option>
+          <option value="CEC">Crescent City (CA)</option>
+          <option value="CGB">
+            Cuiaba - Marechal Rondon International Airport
+          </option>
+          <option value="CUL">Culiacan</option>
+          <option value="CUR">Curacao - Curaçao International Airport</option>
+          <option value="CWB">
+            Curitiba - Afonso Pena International Airport
+          </option>
+          <option value="CYU">Cuyo</option>
+
+          <option value="DKR">
+            Dakar - Léopold Sédar Senghor International Airport
+          </option>
+          <option value="DLM">Dalaman</option>
+          <option value="DBY">Dalby</option>
+          <option value="DLC">Dalian - Zhoushuizi International Airport</option>
+          <option value="DAL">Dallas (TX) , Love Field</option>
+          <option value="DFW">
+            Dallas/Ft. Worth (TX) - Dallas/Fort Worth International
+          </option>
+          <option value="DJO">Daloa</option>
+          <option value="DAM">Damascus, International</option>
+          <option value="DMM">Dammam, King Fahad International</option>
+          <option value="DAN">Danville (VA)</option>
+          <option value="DAR">
+            Dar es Salam (Daressalam) - Julius Nyerere Int'l
+          </option>
+          <option value="DRW">Darwin</option>
+          <option value="DDI">Daydream Island</option>
+          <option value="DAY">Dayton (OH)</option>
+          <option value="DAB">Daytona Beach (FL)</option>
+          <option value="DEC">Decatur (IL)</option>
+          <option value="YDF">Deer Lake/Corner Brook</option>
+          <option value="DEL">
+            Delhi - Indira Gandhi International Airport
+          </option>
+          <option value="HAG">Den Haag (The Hague)</option>
+          <option value="DNZ">Denizli</option>
+          <option value="DPS">Denpasar/Bali</option>
+          <option value="DEN">
+            Denver (CO) - Denver International Airport
+          </option>
+          <option value="DSK">
+            Dera Ismail Khan - Dera Ismail Khan Airport
+          </option>
+          <option value="DRB">Derby</option>
+          <option value="LDY">Derry (Londonderry)</option>
+          <option value="DSM">
+            Des Moines (IA) - Des Moines International Airport
+          </option>
+          <option value="DET">Detroit (MI) , Coleman A. Young Municipal</option>
+          <option value="DTW">Detroit (MI) , Wayne County Airport</option>
+          <option value="DTT">Detroit (MI) , Metropolitan Area</option>
+          <option value="DVL">Devils Lake (ND)</option>
+          <option value="DPO">Devonport</option>
+          <option value="DHA">Dhahran</option>
+          <option value="DAC">Dhaka - Zia International Airport</option>
+          <option value="DIL">
+            Dili - Nicolau Lobato International Airport
+          </option>
+          <option value="DLG">Dillingham (AK)</option>
+          <option value="DNR">Dinard</option>
+          <option value="DLP">Disneyland Paris</option>
+          <option value="DJE">Djerba</option>
+          <option value="JIB">
+            Djibouti (city) - Djibouti-Ambouli International Airport
+          </option>
+          <option value="DOD">Dodoma - Dodoma Airport</option>
+          <option value="DOH">Doha - Doha International Airport</option>
+          <option value="DSA">
+            Doncaster/Sheffield, Robin Hood International Airport
+          </option>
+          <option value="CFN">Donegal (Carrickfin)</option>
+          <option value="DTM">Dortmund</option>
+          <option value="DHN">Dothan (AL)</option>
+          <option value="DLA">Douala</option>
+          <option value="DRS">Dresden - Dresden Airport</option>
+          <option value="DXB">Dubai - Dubai International Airport</option>
+          <option value="DBO">Dubbo</option>
+          <option value="DUB">Dublin - Dublin International Airport</option>
+          <option value="DUJ">Dubois (PA)</option>
+          <option value="DBV">Dubrovnik</option>
+          <option value="DBQ">Dubuque IA</option>
+          <option value="DUS">
+            Duesseldorf - Düsseldorf International Airport
+          </option>
+          <option value="DLH">Duluth (MN) /Superior (WI)</option>
+          <option value="DND">Dundee</option>
+          <option value="DUD">Dunedin</option>
+          <option value="DKI">Dunk Island</option>
+          <option value="DRO">Durango (CO)</option>
+          <option value="DUR">Durban</option>
+          <option value="DYU">Dushanbe (Duschanbe) - Dushanbe Airport</option>
+          <option value="DUT">Dutch Harbor (AK)</option>
+          <option value="DYA">Dysart</option>
+          <option value="DZA">Dzaoudzi</option>
+
+          <option value="ELS">East London</option>
+          <option value="IPC">Easter Island</option>
+          <option value="EAU">Eau Clarie (WI)</option>
+          <option value="EDI">Edinburgh - Edinburgh Airport</option>
+          <option value="YEA">Edmonton</option>
+          <option value="YEG">Edmonton, International</option>
+          <option value="YXD">Edmonton, Municipal</option>
+          <option value="EGS">Egilsstadir</option>
+          <option value="EIN">Eindhoven</option>
+          <option value="AZS">
+            Samana - Samaná El Catey International Airport
+          </option>
+          <option value="EBA">Elba Island, Marina Di Campo</option>
+          <option value="ETH">Elat</option>
+          <option value="VDA">Elat, Ovula</option>
+          <option value="EKI">Elkhart (IN)</option>
+          <option value="EKO">Elko (NV)</option>
+          <option value="ELL">Ellisras</option>
+          <option value="EMY">El Minya</option>
+          <option value="ELM">Elmira (NY)</option>
+          <option value="ELP">
+            El Paso (TX) - El Paso International Airport
+          </option>
+          <option value="ELY">Ely (NV)</option>
+          <option value="EDR">Emerald</option>
+          <option value="EMD">Emerald</option>
+          <option value="ENF">Enontekioe</option>
+          <option value="EBB">Entebbe - Entebbe International Airport</option>
+          <option value="ERF">
+            Erfurt - Erfurt Airport (Flughafen Erfurt)
+          </option>
+          <option value="ERI">Erie (PA)</option>
+          <option value="EVN">Eriwan (Yerevan, Jerevan)</option>
+          <option value="ERC">Erzincan</option>
+          <option value="ERZ">Erzurum</option>
+          <option value="EBJ">Esbjerg</option>
+          <option value="ESC">Escanaba (MI)</option>
+          <option value="EPR">Esperance</option>
+          <option value="EUG">Eugene (OR)</option>
+          <option value="ACV">Eureka (CA)</option>
+          <option value="EVV">Evansville (IN)</option>
+          <option value="EVE">Evenes</option>
+          <option value="EXT">Exeter</option>
+
+          <option value="FAI">Fairbanks (AK) - USA</option>
+          <option value="FIE">Fair Isle (Shetland) - United Kingdom</option>
+          <option value="LYP">Faisalabad - Pakistan</option>
+          <option value="FAR">Fargo (ND) (MN) - USA</option>
+          <option value="FMN">Farmington (NM) - USA</option>
+          <option value="FAO">Faro - Portugal</option>
+          <option value="FAE">Faroer - Vágar Airport - Denmark</option>
+          <option value="FYV">Fayetteville (AR) - USA</option>
+          <option value="FAY">Fayetteville/Ft. Bragg (NC) - USA</option>
+          <option value="FEZ">Fes - Morocco</option>
+          <option value="FSC">Figari - France</option>
+          <option value="FLG">Flagstaff (AZ) - USA</option>
+          <option value="YFO">Flin Flon - Canada</option>
+          <option value="FNT">Flint (MI) - USA</option>
+          <option value="FLR">
+            Florence (Firenze) - Peretola Airport - Italy
+          </option>
+          <option value="FLO">Florence (SC) - USA</option>
+          <option value="FLN">Florianopolis - Brazil</option>
+          <option value="FRO">Floro - Norway</option>
+          <option value="YFA">Fort Albert - Canada</option>
+          <option value="FOR">
+            Fortaleza - Pinto Martins Airport - Brazil
+          </option>
+          <option value="FDF">
+            Fort de France - Martinique Aimé Césaire International - Martinique
+          </option>
+          <option value="FOD">Fort Dodge IA - USA</option>
+          <option value="FHU">Fort Huachuca/Sierra Vista (AZ) - USA</option>
+          <option value="FLL">Fort Lauderdale/Hollywood (FL) - USA</option>
+          <option value="YMM">Fort McMurray - Canada</option>
+          <option value="FMY">Fort Myers, Metropolitan Area (FL) - USA</option>
+          <option value="RSW">
+            Fort Myers, Southwest Florida Reg (FL) - USA
+          </option>
+          <option value="FRI">Fort Riley (KS) - Marshall AAF - USA</option>
+          <option value="YSM">Fort Smith - Canada</option>
+          <option value="FSM">Fort Smith (AR) - USA</option>
+          <option value="YXJ">Fort St. John - Canada</option>
+          <option value="VPS">Fort Walton Beach (FL) - USA</option>
+          <option value="FWA">Fort Wayne (IN) - USA</option>
+          <option value="DFW">
+            Fort Worth (TX) - Dallas/Fort Worth International Airport - USA
+          </option>
+          <option value="FOU">Foula (Shetland) - United Kingdom</option>
+          <option value="FRW">Francistown - Botswana</option>
+          <option value="FRA">
+            Frankfurt/Main - Frankfurt Airport (Rhein-Main-Flughafen) - Germany
+          </option>
+          <option value="HHN">Frankfurt/Hahn - Germany</option>
+          <option value="FKL">Franklin/Oil City (PA) - USA</option>
+          <option value="YFC">Fredericton - Canada</option>
+          <option value="FPO">
+            Freeport - Grand Bahama International Airport - Bahamas
+          </option>
+          <option value="FNA">
+            Freetown - Freetown-Lungi International Airport - Sierra Leone
+          </option>
+          <option value="FRJ">Frejus - France</option>
+          <option value="FAT">Fresno (CA) - USA</option>
+          <option value="FDH">
+            Friedrichshafen - Bodensee-Airport Friedrichshafen - Germany
+          </option>
+          <option value="FUE">Fuerteventura - Spain</option>
+          <option value="FJR">
+            Fujairah, International Airport - United Arab Emirates
+          </option>
+          <option value="FUK">Fukuoka - Japan</option>
+          <option value="FKS">Fukushima - Fukushima Airport - Japan</option>
+          <option value="FNC">Funchal - Portugal</option>
+          <option value="FUT">Futuna - Wallis and Futuna Islands</option>
+
+          <option value="GBE">
+            Gaborone - Sir Seretse Khama International Airport - Botswana
+          </option>
+          <option value="GAD">Gadsden (AL) - USA</option>
+          <option value="GNV">Gainesville (FL) - USA</option>
+          <option value="GWY">Galway - Ireland</option>
+          <option value="YQX">Gander - Canada</option>
+          <option value="GOU">Garoua - Cameroon</option>
+          <option value="GZA">
+            Gaza City - Gaza International Airport - Palestinian Territory
+          </option>
+          <option value="GZT">Gaziantep - Turkey</option>
+          <option value="GDN">Gdansk - Poland</option>
+          <option value="GEX">Geelong - Australia</option>
+          <option value="GVA">
+            Geneva - Geneva-Cointrin International Airport - Switzerland
+          </option>
+          <option value="GOA">Genoa - Italy</option>
+          <option value="GRJ">George - South Africa</option>
+          <option value="GEO">
+            Georgetown - Cheddi Jagan International Airport - Guyana
+          </option>
+          <option value="GET">Geraldton - Australia</option>
+          <option value="GRO">Gerona - Spain</option>
+          <option value="GNE">Ghent (Gent) - Belgium</option>
+          <option value="GIB">Gibraltar - Gibraltar</option>
+          <option value="GCC">Gilette (WY) - USA</option>
+          <option value="GIL">Gilgit - Pakistan</option>
+          <option value="YGX">Gillam - Canada</option>
+          <option value="GLT">Gladstone - Australia</option>
+          <option value="PIK">Glasgow, Prestwick - United Kingdom</option>
+          <option value="GLA">Glasgow - United Kingdom</option>
+          <option value="GGW">Glasgow (MT) - USA</option>
+          <option value="GDV">Glendive (MT) - USA</option>
+          <option value="GOI">Goa - India</option>
+          <option value="GYN">Goiania, Santa Genoveva Airport - Brazil</option>
+          <option value="OOL">Gold Coast - Australia</option>
+          <option value="GOO">Goondiwindi - Australia</option>
+          <option value="YYR">Goose Bay - Canada</option>
+          <option value="GOZ">Gorna - Bulgaria</option>
+          <option value="GOT">
+            Gothenburg (Göteborg) - Landvetter - Sweden
+          </option>
+          <option value="GOV">Gove (Nhulunbuy) - Australia</option>
+          <option value="GHB">Govenors Harbour - Bahamas</option>
+          <option value="GRX">Granada - Spain</option>
+          <option value="GND">
+            Grenada - Point Salines Airport also Maurice Bishop - Grenada
+          </option>
+          <option value="GNB">Grenoble - France</option>
+          <option value="GFF">Griffith - Australia</option>
+          <option value="GRQ">Groningen - Eelde - Netherlands</option>
+          <option value="GTE">Groote Eylandt - Alyangula - Australia</option>
+          <option value="GON">Groton/New London (CT) - USA</option>
+          <option value="GDL">Guadalajara - Mexico</option>
+          <option value="GSI">Guadalcanal - Solomon Islands</option>
+          <option value="GUM">Guam - Guam</option>
+          <option value="CAN">
+            Guangzhou (Canton) - Baiyun International Airport - Guangdong, PR
+            China
+          </option>
+          <option value="GRU">
+            Sao Paulo - Guarulhos International - Brazil
+          </option>
+          <option value="GUA">
+            Guatemala City - La Aurora International Airport - Guatemala
+          </option>
+          <option value="GYE">Guayaquil - Simon Bolivar - Ecuador</option>
+          <option value="GCI">Guernsey - Channel Islands</option>
+          <option value="GTI">Guettin - Germany</option>
+          <option value="GPT">Gulfport/Biloxi (MS) - USA</option>
+          <option value="KWL">Guilin - Liangjiang - Guangxi, PR China</option>
+          <option value="ULU">Gulu - Uganda</option>
+          <option value="GUC">Gunnison/Crested Butte (CO) - USA</option>
+          <option value="GAU">Guwahati - India</option>
+          <option value="GWD">Gwadar - Pakistan</option>
+          <option value="GWE">Gweru - Zimbabwe</option>
+          <option value="GYP">Gympie - Australia</option>
+
+          <option value="HAC">Hachijo Jima - Japan</option>
+          <option value="GUM">
+            Hagåtña - Guam International Airport - Guam
+          </option>
+          <option value="HFA">Haifa - Israel</option>
+          <option value="HNS">Haines (AK) - USA</option>
+          <option value="HKD">Hakodate - Japan</option>
+          <option value="YHZ">Halifax International - Canada</option>
+          <option value="YUX">Hall Beach - Canada</option>
+          <option value="HAM">Hamburg - Fuhlsbuettel - Germany</option>
+          <option value="HLT">Hamilton - Australia</option>
+          <option value="YHM">Hamilton - Canada</option>
+          <option value="HLZ">Hamilton - New Zealand</option>
+          <option value="HTI">Hamilton Island - Australia</option>
+          <option value="HFT">Hammerfest - Norway</option>
+          <option value="CMX">Hancock (MI) - USA</option>
+          <option value="HGH">Hangchow (Hangzhou) - Zhejiang, PR China</option>
+          <option value="HAJ">Hannover - Germany</option>
+          <option value="HAN">
+            Hanoi - Noi Bai International Airport - Vietnam
+          </option>
+          <option value="HRE">
+            Harare - Harare International Airport - Zimbabwe
+          </option>
+          <option value="HRB">Harbin (Haerbin) - Heilongjiang, PR China</option>
+          <option value="HRL">Harlingen/South Padre Island (TX) - USA</option>
+          <option value="YHR">Harrington Harbour, PQ - Canada</option>
+          <option value="HAR">
+            Harrisburg (PA) - Harrisburg Skyport - USA
+          </option>
+          <option value="MDT">
+            Harrisburg (PA) - Harrisburg International - USA
+          </option>
+          <option value="BDL">Hartford (CT) /Springfield (MA) - USA</option>
+          <option value="HDY">Hatyai (Hat Yai) - Thailand</option>
+          <option value="HAU">Haugesund - Norway</option>
+          <option value="HAV">Havana - José Martí International - Cuba</option>
+          <option value="HVR">Havre (MT) - USA</option>
+          <option value="HIS">Hayman Island - Australia</option>
+          <option value="HLN">Helena (MT) - USA</option>
+          <option value="JHE">Helsingborg - Sweden</option>
+          <option value="HEL">Helsinki - Vantaa - Finland</option>
+          <option value="HER">Heraklion - Greece</option>
+          <option value="HMO">
+            Hermosillo - Gen. Pesqueira Garcia - Mexico
+          </option>
+          <option value="HVB">Hervey Bay - Australia</option>
+          <option value="HIB">Hibbing (MN) - USA</option>
+          <option value="HKY">Hickory (NC) - USA</option>
+          <option value="ITO">Hilo (HI) - USA</option>
+          <option value="HHH">Hilton Head Island (SC) - USA</option>
+          <option value="HNK">Hinchinbrook Island - Australia</option>
+          <option value="HIJ">Hiroshima International - Japan</option>
+          <option value="SGN">
+            Ho Chi Minh City (Saigon) - Tan Son Nhat International - Viet Nam
+          </option>
+          <option value="HBA">Hobart - Australia</option>
+          <option value="HOQ">Hof - Germany</option>
+          <option value="HOG">Holguin - Cuba</option>
+          <option value="HMH">Home Hill - Australia</option>
+          <option value="HOM">Homer (AK) - USA</option>
+          <option value="HKG">
+            Hong Kong - International Airport (HKIA) - Hong Kong
+          </option>
+          <option value="ZJK">Hong Kong - Chek Lap Kok - Hong Kong</option>
+          <option value="HIR">
+            Honiara Henderson International - Solomon Islands
+          </option>
+          <option value="HNL">
+            Honolulu (HI) - Honolulu International Airport - USA
+          </option>
+          <option value="HNH">Hoonah (AK) - USA</option>
+          <option value="HOR">Horta - Portugal</option>
+          <option value="HOU">Houston (TX) , Hobby - USA</option>
+          <option value="IAH">
+            Houston, TX - George Bush Intercontinental Airport - USA
+          </option>
+          <option value="HUH">Huahine - French Polynesia</option>
+          <option value="HUX">Huatulco - Mexico</option>
+          <option value="HUI">Hue - Phu Bai - Viet Nam</option>
+          <option value="HUY">Humberside - United Kingdom</option>
+          <option value="HTS">Huntington (WV) - USA</option>
+          <option value="HSV">Huntsville (AL) - USA</option>
+          <option value="HRG">Hurghada International - Egypt</option>
+          <option value="HON">Huron (SD) - USA</option>
+          <option value="HWN">Hwange National Park - Zimbabwe</option>
+          <option value="HYA">Hyannis (MA) - USA</option>
+          <option value="HYG">Hydaburg (AK) - USA</option>
+          <option value="HYD">
+            Hyderabad - Rajiv Gandhi International Airport - India
+          </option>
+          <option value="HDD">Hyderabad - Pakistan</option>
+
+          <option value="IBZ">Ibiza - Spain</option>
+          <option value="IDA">Idaho Falls (ID) - USA</option>
+          <option value="IGR">Iguazu, Cataratas - Argentina</option>
+          <option value="ILP">Ile des Pins - New Caledonia</option>
+          <option value="IOU">Ile Ouen - New Caledonia</option>
+          <option value="ILI">Iliamna (AK) - USA</option>
+          <option value="IPL">Imperial (CA) - USA</option>
+          <option value="IVC">Incercargill - New Zealand</option>
+          <option value="ICN">
+            Incheon, Incheon International Airport - Korea South
+          </option>
+          <option value="IND">Indianapolis (IN) International - USA</option>
+          <option value="IGH">Ingham - Australia</option>
+          <option value="IFL">Innisfail - Australia</option>
+          <option value="INN">Innsbruck - Kranebitten - Austria</option>
+          <option value="INL">International Falls (MN) - USA</option>
+          <option value="YEV">Inuvik - Canada</option>
+          <option value="IVC">Invercargill - New Zealand</option>
+          <option value="INV">Inverness - United Kingdom</option>
+          <option value="IYK">Inykern (CA) - USA</option>
+          <option value="YFB">Iqaluit (Frobisher Bay) - Canada</option>
+          <option value="IQT">Iquitos - Peru</option>
+          <option value="IKT">Irkutsk - Russia</option>
+          <option value="ISG">Ishigaki - New Ishigaki Airport - Japan</option>
+          <option value="ISB">
+            Islamabad - Benazir Bhutto International Airport - Pakistan
+          </option>
+          <option value="ILY">Islay - United Kingdom</option>
+          <option value="IOM">Isle of Man</option>
+          <option value="IST">
+            Istanbul - Istanbul Atatürk Airport - Turkey
+          </option>
+          <option value="SAW">Istanbul - Sabiha Gokcen - Turkey</option>
+          <option value="ITH">Ithaca/Cortland (NY) - USA</option>
+          <option value="IVL">Ivalo - Finland</option>
+          <option value="ZIH">Ixtapa/Zihuatenejo - Mexico</option>
+          <option value="IZM">Izmir - Turkey</option>
+          <option value="ADB">Izmir - Adnan Menderes Airport - Turkey</option>
+
+          <option value="JAC">Jackson Hole (WY) - USA</option>
+          <option value="JXN">Jackson (MI) - Reynolds Municipal - USA</option>
+          <option value="MJQ">Jackson, MN - USA</option>
+          <option value="JAN">
+            Jackson (MS) - Jackson Internationall - USA
+          </option>
+          <option value="HKS">Jackson (MS) - Hawkins Field - USA</option>
+          <option value="MKL">Jackson (TN) - Mckellar - USA</option>
+          <option value="JAC">Jackson Hole (WY) - USA</option>
+          <option value="LRF">Jacksonville (AR) Little Rock AFB - USA</option>
+          <option value="NZC">Jacksonville (FL) - Cecil Field NAS - USA</option>
+          <option value="NIP">Jacksonville (FL) Jacksonville NAS - USA</option>
+          <option value="JAX">Jacksonville (FL) - International - USA</option>
+          <option value="CRG">Jacksonville (FL) - Craig Municipal - USA</option>
+          <option value="IJX">
+            Jacksonville (IL) - Municipal Airport - USA
+          </option>
+          <option value="OAJ">Jacksonville (NC) - USA</option>
+          <option value="JKV">Jacksonville (TX) - USA</option>
+          <option value="JAK">Jacmel - Haiti</option>
+          <option value="JAG">Jacobabad - Pakistan</option>
+          <option value="JCM">Jacobina - Brazil</option>
+          <option value="JAQ">Jacquinot Bay - Papua New Guinea</option>
+          <option value="JAF">Jaffna - Kankesanturai - Sri Lanka</option>
+          <option value="JGB">Jagdalpur - India</option>
+          <option value="JAI">Jaipur - Sanganeer - India</option>
+          <option value="JSA">Jaisalmer - India</option>
+          <option value="HLP">
+            Jakarta - Halim Perdana Kusuma - Indonesia
+          </option>
+          <option value="JKT">Jakarta - Metropolitan Area - Indonesia</option>
+          <option value="CGK">
+            Jakarta - Soekarno-Hatta International - Indonesia
+          </option>
+          <option value="JAA">Jalalabad - Afghanistan</option>
+          <option value="JLR">Jalandhar - India</option>
+          <option value="JAL">Jalapa - Mexico</option>
+          <option value="JLS">Jales - Brazil</option>
+          <option value="UIT">Jaluit Island - Marshall Islands</option>
+          <option value="JMB">Jamba - Angola</option>
+          <option value="DJB">Jambi - Sultan Taha Syarifudn - Indonesia</option>
+          <option value="JAM">Jambol - Bulgaria</option>
+          <option value="JMS">Jamestown (ND) - USA</option>
+          <option value="JHW">Jamestown (NY) - USA</option>
+          <option value="IXJ">Jammu - Satwari - India</option>
+          <option value="JGA">Jamnagar - Govardhanpur - India</option>
+          <option value="IXW">Jamshedpur - Sonari Airport - India</option>
+          <option value="JKR">Janakpur - Nepal</option>
+          <option value="JAD">Jandakot - Australia</option>
+          <option value="JVL">Janesville (WI) - Rock County - USA</option>
+          <option value="JNA">Januaria - Brazil</option>
+          <option value="JQE">Jaque - Panama</option>
+          <option value="JTI">Jatai - Brazil</option>
+          <option value="JAU">Jauja - Peru</option>
+          <option value="DJJ">Jayapura - Sentani - Indonesia</option>
+          <option value="JED">
+            Jeddah - King Abdulaziz International - Saudi Arabia
+          </option>
+          <option value="JEF">
+            Jefferson City (MO) - Jefferson Memorial - USA
+          </option>
+          <option value="JEE">Jeremie - Jeremie Airport - Haiti</option>
+          <option value="XRY">
+            Jerez de la Frontera/Cadiz - La Parra - Spain
+          </option>
+          <option value="JER">Jersey - Channel Islands</option>
+          <option value="JRS">
+            Jerusalem - Atarot Airport (closed) - Israel
+          </option>
+          <option value="JSR">Jessore - Jessore Airport - Bangladesh</option>
+          <option value="PYB">Jeypore - Jeypore Airport - India</option>
+          <option value="JGS">Ji'an - Jiangxi, China</option>
+          <option value="JMU">Jiamusi - Jiamusi Airport - PR China</option>
+          <option value="JGN">Jiayuguan - Jiayuguan Airport - PR China</option>
+          <option value="GJL">Jijel - Algeria</option>
+          <option value="JIJ">Jijiga - Ethiopia</option>
+          <option value="JIL">Jilin - PR China</option>
+          <option value="JIM">Jimma - Ethiopia</option>
+          <option value="TNA">Jinan - Shandong, PR China</option>
+          <option value="JDZ">Jingdezhen - PR China</option>
+          <option value="JHG">Jinghong - Gasa Airport - PR China</option>
+          <option value="JNG">Jining - PR China</option>
+          <option value="JIN">Jinja - Uganda</option>
+          <option value="JJN">Jinjiang - PR China</option>
+          <option value="BCO">Jinka - Baco/Jinka Airport - Ethiopia</option>
+          <option value="JNZ">Jinzhou - Jinzhou Airport - PR China</option>
+          <option value="JIP">Jipijapa - Ecuador</option>
+          <option value="JIR">Jiri - Nepal</option>
+          <option value="JIU">
+            Jiujiang - Jiujiang Lushan Airport - PR China
+          </option>
+          <option value="JIW">Jiwani - Pakistan</option>
+          <option value="JCB">Joacaba - Brazil</option>
+          <option value="JPA">
+            Joao Pessoa - Castro Pinto Airport - Brazil
+          </option>
+          <option value="JDH">Jodhpur - India</option>
+          <option value="JKG">
+            Jönköping (Jonkoping) - Axamo Airport - Sweden
+          </option>
+          <option value="JOE">Joensuu - Finland</option>
+          <option value="JNB">
+            Johannesburg - OR Tambo International Airport - South Africa
+          </option>
+          <option value="BGM">
+            Johnson City (NY) - Binghamton/Endicott/Johnson - USA
+          </option>
+          <option value="JON">Johnston Island - USA</option>
+          <option value="JST">Johnstown (PA) - USA</option>
+          <option value="JHB">
+            Johor Bahru - Sultan Ismail International - Malaysia
+          </option>
+          <option value="JOI">Joinville - Cubatao Airport - Brazil</option>
+          <option value="JOL">Jolo - Philippines</option>
+          <option value="JMO">Jomsom - Nepal</option>
+          <option value="JBR">Jonesboro (AR) Jonesboro Airport - USA</option>
+          <option value="JLN">Joplin (MO) - USA</option>
+          <option value="JRH">Jorhat - Rowriah Airport - India</option>
+          <option value="JOS">Jos - Nigeria</option>
+          <option value="JSM">Jose De San Martin - Argentina</option>
+          <option value="AJF">Jouf - Saudi Arabia</option>
+          <option value="JJI">Juanjui - Peru</option>
+          <option value="JUB">Juba - South Sudan</option>
+          <option value="JUI">Juist (island) - Germany</option>
+          <option value="JDF">
+            Juiz De Fora - Francisco De Assis Airport - Brazil
+          </option>
+          <option value="JUJ">Jujuy - El Cadillal Airport - Argentina</option>
+          <option value="JCK">Julia Creek - Australia</option>
+          <option value="JUL">Juliaca - Peru</option>
+          <option value="JUM">Jumla - Nepal</option>
+          <option value="JUN">Jundah - Australia</option>
+          <option value="JNU">
+            Juneau (AK) - Juneau International Airport - USA
+          </option>
+          <option value="JNI">Junin - Argentina</option>
+          <option value="JUT">Juticalpa - Honduras</option>
+          <option value="JWA">Jwaneng - Botswana</option>
+          <option value="JYV">Jyväskylä (Jyvaskyla) - Finland</option>
+
+          <option value="KBL">
+            Kabul - Khwaja Rawash Airport - Afghanistan
+          </option>
+          <option value="KOJ">Kagoshima - Japan</option>
+          <option value="KCM">Kahramanmaras - Turkey</option>
+          <option value="OGG">Kahului (HI) - USA</option>
+          <option value="KAJ">Kajaani - Finland</option>
+          <option value="KLX">Kalamata - Greece</option>
+          <option value="AZO">Kalamazoo/Battle Creek (MI) - USA</option>
+          <option value="KGI">Kalgoorlie - Australia</option>
+          <option value="KGD">Kaliningrad - Russia</option>
+          <option value="FCA">Kalispell (MT) - USA</option>
+          <option value="KLR">Kalmar - Sweden</option>
+          <option value="YKA">Kamloops, BC - Canada</option>
+          <option value="MUE">Kamuela (HI) - USA</option>
+          <option value="KAN">Kano - Nigeria</option>
+          <option value="KNU">Kanpur - India</option>
+          <option value="MCI">
+            Kansas City (MO) - Kansas City International Airport - USA
+          </option>
+          <option value="KHH">Kaohsiung International - Taiwan</option>
+          <option value="JHM">Kapalua West (HI) - USA</option>
+          <option value="KHI">
+            Karachi - Jinnah International Airport - Pakistan
+          </option>
+          <option value="FKB">Karlsruhe-Baden - Soellingen - Germany</option>
+          <option value="KSD">Karlstad - Sweden</option>
+          <option value="AOK">Karpathos - Greece</option>
+          <option value="KTA">Karratha - Australia</option>
+          <option value="KYS">Kars - Turkey</option>
+          <option value="KRB">Karumba - Australia</option>
+          <option value="KRP">Karup - Denmark</option>
+          <option value="ZKE">Kaschechawan, PQ - Canada</option>
+          <option value="KSL">Kassala - Sudan</option>
+          <option value="KTR">Katherine - Australia</option>
+          <option value="KTM">
+            Kathmandu - Tribhuvan International Airport - Nepal
+          </option>
+          <option value="MPA">Katima Mulilo/Mpacha - Namibia</option>
+          <option value="KHJ">Kauhajoki - Finland</option>
+          <option value="MKK">Kaunakakai (HI) - USA</option>
+          <option value="KVA">Kavalla - Greece</option>
+          <option value="ASR">Kayseri - Turkey</option>
+          <option value="KZN">
+            Kazan - Kazan International Airport - Russia
+          </option>
+          <option value="KMP">Keetmanshoop - Namibia</option>
+          <option value="YLW">Kelowna, BC - Canada</option>
+          <option value="KEM">Kemi/Tornio - Finland</option>
+          <option value="ENA">Kenai (AK) - USA</option>
+          <option value="MSE">
+            Kent (Manston) Kent International - United Kingdom
+          </option>
+          <option value="KIR">Kerry County - Ireland</option>
+          <option value="KTN">Ketchikan (AK) - USA</option>
+          <option value="EYW">Key West (FL) - USA</option>
+          <option value="AHB">Khamis Mushayat - Saudi Arabia</option>
+          <option value="UVL">Kharga - New Valley - Egypt</option>
+          <option value="HRK">Kharkov - Ukraine</option>
+          <option value="KRT">
+            Khartoum - Khartoum International Airport - Sudan
+          </option>
+          <option value="KDD">Khuzdar - Pakistan</option>
+          <option value="KEL">Kiel - Holtenau - Germany</option>
+          <option value="KBP">Kiev - Borispol - Ukraine</option>
+          <option value="IEV">Kiev - Zhulhany - Ukraine</option>
+          <option value="KGL">Kigali - Gregoire Kayibanda - Rwanda</option>
+          <option value="JRO">Kilimadjaro - Tanzania</option>
+          <option value="ILE">Killeem (TX) - USA</option>
+          <option value="KIM">Kimberley - South Africa</option>
+          <option value="KNS">King Island - King Island (Australia)</option>
+          <option value="AKN">King Salomon (AK) - USA</option>
+          <option value="KGC">Kingscote - Australia</option>
+          <option value="KIN">Kingston - Norman Manley - Jamaica</option>
+          <option value="ISO">Kingston (NC) - USA</option>
+          <option value="SVD">
+            Kingstown - E. T. Joshua Airport - Saint Vincent and the Grenadines
+          </option>
+          <option value="FIH">Kinshasa - N'Djili - Congo (DRC)</option>
+          <option value="CXI">
+            Kiritimati (island) - Cassidy International Airport - Kiribati
+          </option>
+          <option value="KKN">Kirkenes - Norway</option>
+          <option value="KIK">Kirkuk - Iraq</option>
+          <option value="KOI">Kirkwall (Orkney) - United Kingdom</option>
+          <option value="KRN">Kiruna - Sweden</option>
+          <option value="FKI">Kisangani - Congo (DRC)</option>
+          <option value="KTT">Kittilä - Finland</option>
+          <option value="KIW">Kitwe - Zambia</option>
+          <option value="KLU">Klagenfurt - Austria</option>
+          <option value="LMT">Klamath Fall (OR) - USA</option>
+          <option value="KLW">Klawock (AK) - USA</option>
+          <option value="KLZ">Kleinsee - South Africa</option>
+          <option value="NOC">Knock - Ireland</option>
+          <option value="TYS">Knoxville (TN) - USA</option>
+          <option value="UKB">Kobe - Japan</option>
+          <option value="KCZ">Kochi - Japan</option>
+          <option value="CGN">Köln, Köln/Bonn - Germany</option>
+          <option value="ADQ">Kodiak (AK) - USA</option>
+          <option value="OHT">Kohat - Pakistan</option>
+          <option value="KOK">Kokkola/Pietarsaari - Finland</option>
+          <option value="CCU">
+            Kolkata (Calcutta) - Netaji Subhas Chandra - India
+          </option>
+          <option value="KMQ">Komatsu - Japan</option>
+          <option value="KOA">Kona (HI) - USA</option>
+          <option value="KYA">Konya - Turkey</option>
+          <option value="HGO">Korhogo - Cote d'Ivoire</option>
+          <option value="KGS">Kos - Greece</option>
+          <option value="BKI">Kota Kinabalu - Malaysia</option>
+          <option value="OTZ">Kotzbue (AK) - USA</option>
+          <option value="KWM">Kowanyama - Australia</option>
+          <option value="KRK">
+            Krakow (Cracow) - John Paul II International Airport - Poland
+          </option>
+          <option value="KRS">Kristiansand - Norway</option>
+          <option value="KID">Kristianstad - Sweden</option>
+          <option value="KSU">Kristiansund - Norway</option>
+          <option value="KUL">
+            Kuala Lumpur - International Airport - Malaysia
+          </option>
+          <option value="SZB">
+            Kuala Lumpur - Sultan Abdul Aziz Shah - Malaysia
+          </option>
+          <option value="KUA">Kuantan - Malaysia</option>
+          <option value="KCH">Kuching - Malaysia</option>
+          <option value="KMJ">Kumamoto - Japan</option>
+          <option value="KNX">Kununurra - Australia</option>
+          <option value="KUO">Kuopio - Finland</option>
+          <option value="KUH">Kushiro - Japan</option>
+          <option value="YVP">Kuujjuaq (FortChimo) - Canada</option>
+          <option value="YGW">Kuujjuarapik - Canada</option>
+          <option value="KAO">Kuusamo - Finland</option>
+          <option value="KWI">Kuwait - Kuwait International - Kuwait</option>
+          <option value="UKY">Kyoto - Japan</option>
+
+          <option value="LEK">Labe - Guinea</option>
+          <option value="WLB">Labouchere Bay (AK) - USA</option>
+          <option value="LBU">Labuan - Malaysia</option>
+          <option value="XLB">Lac Brochet, MB - Canada</option>
+          <option value="LCG">La Coruna - Spain</option>
+          <option value="LSE">La Crosse (WI) - USA</option>
+          <option value="LAE">
+            Lae - Lae Nadzab Airport - Papua New Guinea
+          </option>
+          <option value="LRH">La Rochelle - France</option>
+          <option value="LAF">Lafayette (IN) - USA</option>
+          <option value="LFT">Lafayette, La - USA</option>
+          <option value="LOS">
+            Lagos - Murtala Muhammed Airport - Nigeria
+          </option>
+          <option value="YGL">La Grande - Canada</option>
+          <option value="LHE">Lahore - Pakistan</option>
+          <option value="LCH">Lake Charles (LA) - USA</option>
+          <option value="HII">Lake Havasu City (AZ) - USA</option>
+          <option value="TVL">Lake Tahoe (CA) - USA</option>
+          <option value="LKL">Lakselv - Norway</option>
+          <option value="LBQ">Lambarene - Gabon</option>
+          <option value="SUF">Lamezia Terme - Italy</option>
+          <option value="LMP">Lampedusa - Italy</option>
+          <option value="LNY">Lanai City (HI) - USA</option>
+          <option value="LNS">Lancaster (PA) - USA</option>
+          <option value="LEQ">Land's End - United Kingdom</option>
+          <option value="LGK">Langkawi (islands) - Malaysia</option>
+          <option value="LAI">Lannion - France</option>
+          <option value="HLA">Lanseria - South Africa</option>
+          <option value="LAN">Lansing (MI) - USA</option>
+          <option value="LPB">La Paz - El Alto - Bolivia</option>
+          <option value="LAP">La Paz - Leon - Mexico</option>
+          <option value="LPP">Lappeenranta - Finland</option>
+          <option value="LAR">Laramie (WY) - USA</option>
+          <option value="LRD">Laredo (TX) - USA</option>
+          <option value="LCA">Larnaca - Cyprus</option>
+          <option value="LPA">Las Palmas - Spain</option>
+          <option value="LAS">Las Vegas (NV) - USA</option>
+          <option value="LBE">Latrobe (PA) - USA</option>
+          <option value="LST">Launceston - Australia</option>
+          <option value="PIB">Laurel/Hattisburg (MS) - USA</option>
+          <option value="LVO">Laverton - Australia</option>
+          <option value="LAW">Lawton (OK) - USA</option>
+          <option value="LZC">Lazaro Cardenas - Mexico</option>
+          <option value="YLR">Leaf Rapids - Canada</option>
+          <option value="LEA">Learmouth (Exmouth) - Australia</option>
+          <option value="LEB">Lebanon (NH) - USA</option>
+          <option value="LBA">Leeds/Bradford - United Kingdom</option>
+          <option value="LER">Leinster - Australia</option>
+          <option value="LEJ">Leipzig - Germany</option>
+          <option value="LEY">Lelystad - Netherlands</option>
+          <option value="BJX">Leon - Mexico</option>
+          <option value="LNO">Leonora - Australia</option>
+          <option value="LWK">
+            Lerwick/Tingwall (Shetland Islands) - United Kingdom
+          </option>
+          <option value="LWS">Lewiston (ID) - USA</option>
+          <option value="LWT">Lewistown (MT) - USA</option>
+          <option value="LEX">Lexington (KY) - USA</option>
+          <option value="LBV">Libreville - Gabon</option>
+          <option value="LDK">Lidkoeping - Sweden</option>
+          <option value="LGG">Liege - Belgium</option>
+          <option value="LIF">Lifou - Loyauté, Pazifik</option>
+          <option value="LIH">Lihue (HI) - USA</option>
+          <option value="LIL">Lille - Lille Airport - France</option>
+          <option value="LLW">
+            Lilongwe - Lilongwe International - Malawi
+          </option>
+          <option value="LIM">Lima - J Chavez International - Peru</option>
+          <option value="QLI">Limassol - Cyprus</option>
+          <option value="LIG">Limoges - France</option>
+          <option value="LNK">Lincoln (NE) - USA</option>
+          <option value="LDC">Lindeman Island - Australia</option>
+          <option value="LNZ">Linz - Hoersching - Austria</option>
+          <option value="LIQ">Lisala - Congo (DRC)</option>
+          <option value="LIS">Lisbon - Lisboa - Portugal</option>
+          <option value="LSY">Lismore - Australia</option>
+          <option value="LIT">Little Rock (AR) - USA</option>
+          <option value="LPL">Liverpool - United Kingdom</option>
+          <option value="LZR">Lizard Island - Australia</option>
+          <option value="LJU">Ljubljana - Brnik - Slovenia</option>
+          <option value="IRG">Lockhart River - Australia</option>
+          <option value="LFW">Lome - Togo</option>
+          <option value="YXU">London - Canada</option>
+          <option value="LON">London Metropolitan Area - United Kingdom</option>
+          <option value="LCY">London - City Airport - United Kingdom</option>
+          <option value="LGW">London - Gatwick - United Kingdom</option>
+          <option value="LHR">London - Heathrow - United Kingdom</option>
+          <option value="LTN">London - Luton - United Kingdom</option>
+          <option value="STN">London - Stansted - United Kingdom</option>
+          <option value="LDY">Londonderry - Eglinton - United Kingdom</option>
+          <option value="LGB">Long Beach (CA) - USA</option>
+          <option value="LIJ">Long Island (AK) - USA</option>
+          <option value="ISP">
+            Long Island, Islip (NY) - Mac Arthur - USA
+          </option>
+          <option value="LRE">Longreach - Australia</option>
+          <option value="GGG">Longview/Kilgore (TX) - USA</option>
+          <option value="LYR">Longyearbyen - Svalbard - Svalbard/Norway</option>
+          <option value="LTO">Loreto - Mexico</option>
+          <option value="LRT">Lorient - France</option>
+          <option value="LAX">Los Angeles (CA) - International - USA</option>
+          <option value="SJD">Los Cabos - Mexico</option>
+          <option value="LMM">Los Mochis - Mexico</option>
+          <option value="TFN">Los Rodeos - Teneriffa/Spain</option>
+          <option value="LSZ">Losinj - Losinj Arpt - Croatia (Hrvatska)</option>
+          <option value="LDE">Lourdes/Tarbes - France</option>
+          <option value="SDF">Louisville (KY) - USA</option>
+          <option value="LBB">Lubbock (TX) - USA</option>
+          <option value="LKO">Lucknow - India</option>
+          <option value="LUD">Luederitz - Namibia</option>
+          <option value="MLA">Luga - Malta</option>
+          <option value="LUG">Lugano - Switzerland</option>
+          <option value="LLA">Lulea - Sweden</option>
+          <option value="FBM">Lumbumbashi - Congo (DRC)</option>
+          <option value="LUN">
+            Lusaka - Lusaka International Airport - Zambia
+          </option>
+          <option value="LUJ">Lusisiki - South Africa</option>
+          <option value="LUX">Luxembourg - Luxembourg</option>
+          <option value="LUM">Luxi - Mangshi - Yunnan, PR China</option>
+          <option value="LXR">Luxor - Egypt</option>
+          <option value="LWO">Lvov (Lwow, Lemberg) - Ukraine</option>
+          <option value="LYX">
+            Lydd - Lydd International Airport - United Kingdom
+          </option>
+          <option value="LYH">Lynchburg (VA) - USA</option>
+          <option value="LYS">
+            Lyon - Lyon-Saint Exupéry Airport official website - France
+          </option>
+          <option value="LYO">Lyons (KS) - Rice County Municipal - USA</option>
+
+          <option value="MST">Maastricht/Aachen - Netherlands</option>
+          <option value="MCP">
+            Macapa - Alberto Alcolumbre International Airport - Brazil
+          </option>
+          <option value="MFM">
+            Macau - Macau International Airport - Macau, China SAR
+          </option>
+          <option value="MCZ">
+            Maceio - Zumbi dos Palmares International Airport - Brazil
+          </option>
+          <option value="MKY">Mackay - Australia</option>
+          <option value="MCN">Macon (GA) - USA</option>
+          <option value="NOP">Mactan Island - Nab - Philippines</option>
+          <option value="MED">
+            Madinah (Medina) - Mohammad Bin Abdulaziz - Saudi Arabia
+          </option>
+          <option value="MSN">
+            Madison (WI) - Dane County Regional Airport - USA
+          </option>
+          <option value="MAA">
+            Madras (Chennai) - Chennai International Airport - India
+          </option>
+          <option value="MAD">Madrid - Barajas Airport - Spain</option>
+          <option value="SEZ">
+            Mahe - Seychelles International - Seychelles
+          </option>
+          <option value="MAH">Mahon - Spain</option>
+          <option value="MTL">Maitland - Australia</option>
+          <option value="MJN">Majunga - Madagascar</option>
+          <option value="MZG">Makung - Taiwan</option>
+          <option value="SSG">
+            Malabo - Malabo International Airport - Equatorial Guinea
+          </option>
+          <option value="AGP">Malaga - Spain</option>
+          <option value="MLX">Malatya - Turkey</option>
+          <option value="MLE">
+            Male - Velana International Airport - Maledives
+          </option>
+          <option value="MYD">Malindi - Kenya</option>
+          <option value="MMA">Malmo (Malmoe) - Sweden</option>
+          <option value="MMX">Malmo (Malmö) - Malmö Airport - Sweden</option>
+          <option value="MJC">Man - Cote d'Ivoire</option>
+          <option value="MGA">Managua - Augusto C Sandino - Nicaragua</option>
+          <option value="MAO">
+            Manaus - Eduardo Gomes International Airport - Brazil
+          </option>
+          <option value="MAN">Manchester - United Kingdom</option>
+          <option value="MHT">Manchester (NH) - USA</option>
+          <option value="MDL">
+            Mandalay - Mandalay-Annisaton Airport - Myanmar
+          </option>
+          <option value="MFO">Manguna - Papua New Guinea</option>
+          <option value="XMH">Manihi - French Polynesia</option>
+          <option value="MNL">
+            Manila - Ninoy Aquino International - Philippines
+          </option>
+          <option value="ZLO">Manzanillo - Mexico</option>
+          <option value="MTS">
+            Manzini - Matsapha International - Swaziland
+          </option>
+          <option value="MPM">
+            Maputo - Maputo International - Mozambique
+          </option>
+          <option value="MDQ">Mar del Plata - Argentina</option>
+          <option value="MAR">
+            Maracaibo - La Chinita International - Venezuela
+          </option>
+          <option value="MFQ">Maradi - Niger</option>
+          <option value="KCM">Maras - Turkey</option>
+          <option value="MTH">Marathon (FL) - USA</option>
+          <option value="MQM">Mardin - Turkey</option>
+          <option value="MEE">Mare - New Caledonia</option>
+          <option value="MGH">Margate - South Africa</option>
+          <option value="PMV">Margerita - Venezuela</option>
+          <option value="MBX">Maribor - Slovenia</option>
+          <option value="MHQ">Mariehamn (Maarianhamina) - Finland</option>
+          <option value="MVR">Maroua - Cameroon</option>
+          <option value="MQT">Marquette (MI) - USA</option>
+          <option value="RAK">Marrakesh - Menara Airport - Morocco</option>
+          <option value="RMF">Marsa Alam - Egypt</option>
+          <option value="MUH">Marsa Matrah (Marsa Matruh) - Egypt</option>
+          <option value="MRS">
+            Marseille - Marseille Provence Airport - France
+          </option>
+          <option value="MHH">Marsh Harbour - Bahamas</option>
+          <option value="MVY">Martha's Vineyard (MA) - USA</option>
+          <option value="MRB">Martinsburg (WV) - USA</option>
+          <option value="MBH">Maryborough - Australia</option>
+          <option value="MSU">
+            Maseru - Moshoeshoe International - Lesotho
+          </option>
+          <option value="MCW">Mason City IA - USA</option>
+          <option value="MVZ">Masvingo - Zimbabwe</option>
+          <option value="MMJ">Matsumoto, Nagano - Japan</option>
+          <option value="MYJ">Matsuyama - Japan</option>
+          <option value="MTO">Mattoon (IL) - USA</option>
+          <option value="MUB">Maun - Botswana</option>
+          <option value="MAU">Maupiti - French Polynesia</option>
+          <option value="MRU">
+            Mauritius - S.Seewoosagur Ram International - Mauritius
+          </option>
+          <option value="MAZ">Mayaguez - Puerto Rico</option>
+          <option value="MZT">Mazatlan - Mexico</option>
+          <option value="MFE">McAllen (TX) - USA</option>
+          <option value="MES">
+            Medan - Polania Int'l (now Soewondo AFB) - Indonesia
+          </option>
+          <option value="KNO">
+            Medan - Kualanamu International - Indonesia
+          </option>
+          <option value="MDE">
+            Medellin - José María Córdova International - Colombia
+          </option>
+          <option value="MFR">Medford (OR) - USA</option>
+          <option value="MED">Medina - Saudi Arabia</option>
+          <option value="MKR">Meekatharra - Australia</option>
+          <option value="MEL">
+            Melbourne - Melbourne Airport (Tullamarine) - Australia
+          </option>
+          <option value="MLB">Melbourne (FL) - USA</option>
+          <option value="DOM">Melville Hall - Dominica</option>
+          <option value="MEM">Memphis (TN) - USA</option>
+          <option value="MDZ">Mendoza - Argentina</option>
+          <option value="MDC">Manado - Indonesia</option>
+          <option value="MCE">Merced (CA) - USA</option>
+          <option value="MID">Merida - Mexico</option>
+          <option value="MEI">Meridian (MS) - USA</option>
+          <option value="MIM">Merimbula - Australia</option>
+          <option value="MEZ">Messina - South Africa</option>
+          <option value="MTM">Metlakatla (AK) - USA</option>
+          <option value="MZM">Metz - Frescaty - France</option>
+          <option value="ETZ">Metz/Nancy Metz-Nancy-Lorraine - France</option>
+          <option value="MXL">Mexicali - Mexico</option>
+          <option value="MEX">
+            Mexico City - Mexico City International Airport - Mexico
+          </option>
+          <option value="AZP">Mexico City - Atizapan - Mexico</option>
+          <option value="MEX">
+            Mexico City - Juarez International - Mexico
+          </option>
+          <option value="NLU">Mexico City - Santa Lucia - Mexico</option>
+          <option value="MFU">Mfuwe - Zambia</option>
+          <option value="MIA">Miami (FL) - USA</option>
+          <option value="MWD">Mianwali - Pakistan</option>
+          <option value="MMM">Middlemount - Australia</option>
+          <option value="MAF">Midland/Odessa (TX) - USA</option>
+          <option value="MDY">
+            Midway Island - Sand Island Field - US Minor Outlying Islands
+          </option>
+          <option value="MIK">Mikkeli - Finland</option>
+          <option value="MIL">Milan - Italy</option>
+          <option value="LIN">Milan - Linate - Italy</option>
+          <option value="MXP">Milan - Malpensa - Italy</option>
+          <option value="BGY">Milan - Orio Al Serio - Italy</option>
+          <option value="MQL">Mildura - Australia</option>
+          <option value="MLS">Miles City (MT) - USA</option>
+          <option value="MFN">Milford Sound - New Zealand</option>
+          <option value="MKE">Milwaukee (WI) - USA</option>
+          <option value="MTT">Minatitlan - Mexico</option>
+          <option value="MRV">Mineralnye Vody - Russia</option>
+          <option value="MSP">
+            Minneapolis - St. Paul International Airport (MN) - USA
+          </option>
+          <option value="MOT">Minot (ND) - USA</option>
+          <option value="MSQ">Minsk, International - Belarus</option>
+          <option value="MYY">Miri - Malaysia</option>
+          <option value="QML">Mirpur - Pakistan</option>
+          <option value="MSO">Missula (MT) - USA</option>
+          <option value="MHE">Mitchell (SD) - USA</option>
+          <option value="MMY">
+            Miyako Jima (Ryuku Islands) - Hirara - Japan
+          </option>
+          <option value="KMI">Miyazaki - Japan</option>
+          <option value="MBM">Mkambati - South Africa</option>
+          <option value="MFF">Moanda - Gabon</option>
+          <option value="MOB">Mobile (AL) - Pascagoula (MS) - USA</option>
+          <option value="MOD">Modesto (CA) - USA</option>
+          <option value="MJD">Moenjodaro - Pakistan</option>
+          <option value="MGQ">Mogadishu - Somalia</option>
+          <option value="OKU">Mokuti - Namibia</option>
+          <option value="MLI">Moline/Quad Cities (IL) - USA</option>
+          <option value="MBA">Mombasa - Moi International - Kenya</option>
+          <option value="MIR">Monastir - Tunisia</option>
+          <option value="YQM">Moncton - Canada</option>
+          <option value="MLU">Monroe (LA) - USA</option>
+          <option value="MLW">Monrovia - Metropolitan Area - Liberia</option>
+          <option value="ROB">
+            Monrovia - Roberts International - Liberia
+          </option>
+          <option value="MBJ">
+            Montego Bay - Sangster International - Jamaica
+          </option>
+          <option value="QGF">Montenegro - Brazil</option>
+          <option value="MRY">Monterey (CA) - USA</option>
+          <option value="MTY">
+            Monterrey - Gen. Mariano Escobedo - Mexico
+          </option>
+          <option value="NTR">Monterrey - Aeropuerto Del Norte - Mexico</option>
+          <option value="MVD">
+            Montevideo - Carrasco International Airport - Uruguay
+          </option>
+          <option value="MGM">
+            Montgomery (AL) - Montgomery Regional Airport - USA
+          </option>
+          <option value="MPL">
+            Montpellier - Montpellier–Méditerranée Airport - France
+          </option>
+          <option value="YMQ">Montreal - Canada</option>
+          <option value="YUL">
+            Montreal - Dorval (Montréal-Trudeau) - Canada
+          </option>
+          <option value="YMX">Montreal - Mirabel - Canada</option>
+          <option value="MTJ">Montrose/Tellruide (CO) - USA</option>
+          <option value="MOZ">Moorea - French Polynesia</option>
+          <option value="MOV">Moranbah - Australia</option>
+          <option value="MRZ">Moree - Australia</option>
+          <option value="MLM">Morelia - Mexico</option>
+          <option value="MGW">Morgantown (WV) - USA</option>
+          <option value="HNA">Morioka, Hanamaki - Japan</option>
+          <option value="HAH">
+            Moroni - Prince Said Ibrahim - Comoros (Comores)
+          </option>
+          <option value="MYA">Moruya - Australia</option>
+          <option value="MOW">Moscow - Metropolitan Area - Russia</option>
+          <option value="DME">Moscow - Domodedovo - Russia</option>
+          <option value="SVO">Moscow - Sheremetyevo - Russia</option>
+          <option value="VKO">Moscow - Vnukovo - Russia</option>
+          <option value="MWH">Moses Lake (WA) - USA</option>
+          <option value="MZY">Mossel Bay - South Africa</option>
+          <option value="OMO">Mostar - Bosnia and Herzegovina</option>
+          <option value="OSM">Mosul - Iraq</option>
+          <option value="MJL">Mouila - Gabon</option>
+          <option value="MQQ">Moundou - Chad</option>
+          <option value="GTN">Mount Cook - New Zealand</option>
+          <option value="MGB">Mount Gambier - Australia</option>
+          <option value="MMG">Mount Magnet - Australia</option>
+          <option value="ISA">Mt. Isa - Australia</option>
+          <option value="MCL">Mt. McKinley (AK) - USA</option>
+          <option value="MUC">
+            Muenchen (Munich) - Franz Josef Strauss - Germany
+          </option>
+          <option value="FMO">Muenster/Osnabrueck - Germany</option>
+          <option value="MLH">Mulhouse - France</option>
+          <option value="MUX">Multan - Pakistan</option>
+          <option value="MJV">Murcia - Spain</option>
+          <option value="MMK">Murmansk - Russia</option>
+          <option value="MSR">Mus - Turkey</option>
+          <option value="MCT">Muscat - Seeb - Oman</option>
+          <option value="MSL">Muscle Shoals (AL) - USA</option>
+          <option value="MKG">Muskegon (MI) - USA</option>
+          <option value="MFG">Muzaffarabad - Pakistan</option>
+          <option value="MVB">Mvengue - Gabon</option>
+          <option value="JMK">Mykonos - Greece</option>
+          <option value="MYR">
+            Myrtle Beach (SC) - Myrtle Beach AFB - USA
+          </option>
+          <option value="CRE">
+            Myrtle Beach (SC) - Grand Strand Airport - USA
+          </option>
+          <option value="MYQ">Mysore - India</option>
+          <option value="MJT">Mytilene (Lesbos) - Greece</option>
+          <option value="MZF">Mzamba - South Africa</option>
+
+          <option value="NAN">Nadi - Fiji</option>
+          <option value="NGS">Nagasaki - Japan</option>
+          <option value="NGO">Nagoya - Komaki AFB - Japan</option>
+          <option value="NAG">Nagpur - India</option>
+          <option value="NBO">Nairobi - Kenya</option>
+          <option value="NAJ">Nakhichevan - Azerbaijan</option>
+          <option value="NST">Nakhon Si Thammarat - Thailand</option>
+          <option value="ENC">Nancy - France</option>
+          <option value="YSR">Nanisivik - Canada</option>
+          <option value="NNG">Nanning - Guangxi, PR China</option>
+          <option value="NTE">
+            Nantes - Nantes Atlantique Airport - France
+          </option>
+          <option value="ACK">Nantucket (MA) - USA</option>
+          <option value="NAP">
+            Naples - Naples Capodichino Airport - Italy
+          </option>
+          <option value="APF">Naples (FL) - USA</option>
+          <option value="NAA">Narrabri - Australia</option>
+          <option value="NRA">Narrandera - Australia</option>
+          <option value="UAK">Narsarsuaq - Greenland</option>
+          <option value="BNA">Nashville (TN) - USA</option>
+          <option value="NAS">Nassau - Bahamas</option>
+          <option value="NAT">
+            Natal - Augusto Severo International Airport - Brazil
+          </option>
+          <option value="SUV">Nausori - Fiji/Suva</option>
+          <option value="WNS">Nawab Shah - Pakistan</option>
+          <option value="JNX">Naxos - Naxos Airport - Greece</option>
+          <option value="NDJ">N'Djamena - Chad</option>
+          <option value="NLA">N'Dola - Zambia</option>
+          <option value="NSN">Nelson - New Zealand</option>
+          <option value="NLP">Nelspruit - South Africa</option>
+          <option value="MQP">
+            Nelspruit - Kruger Mpumalanga International Airport - South Africa
+          </option>
+          <option value="NEV">Nevis - St. Kitts and Nevis</option>
+          <option value="EWN">New Bern (NC) - USA</option>
+          <option value="HVN">New Haven (CT) - USA</option>
+          <option value="MSY">New Orleans, La - USA</option>
+          <option value="NQY">Newquay - United Kingdom</option>
+          <option value="UVL">New Valley - Kharga - Egypt</option>
+          <option value="JFK">New York - John F. Kennedy (NY) - USA</option>
+          <option value="LGA">New York - LaGuardia (NY) - USA</option>
+          <option value="EWR">New York - Newark (NJ) - USA</option>
+          <option value="NYC">New York (NY) - USA</option>
+          <option value="SWF">Newburgh (NY) - USA</option>
+          <option value="BEO">Newcastle - Belmont - Australia</option>
+          <option value="NTL">Newcastle - Williamtown - Australia</option>
+          <option value="NCL">Newcastle - United Kingdom</option>
+          <option value="NCS">Newcastle - South Africa</option>
+          <option value="ZNE">Newman - Australia</option>
+          <option value="PHF">Newport News/Williamsburg (VA) - USA</option>
+          <option value="NGE">N'Gaoundere - Cameroon</option>
+          <option value="IAG">Niagara Falls International - USA</option>
+          <option value="NIM">Niamey - Niger</option>
+          <option value="NCE">Nice - Cote D'Azur Airport - France</option>
+          <option value="NIC">Nicosia - Cyprus</option>
+          <option value="NLV">Nikolaev - Ukraine</option>
+          <option value="KIJ">Niigata - Japan</option>
+          <option value="FNI">Nimes - France</option>
+          <option value="INI">Nis - Serbia</option>
+          <option value="GOJ">
+            Nizhny Novgorod - Strigino International Airport - Russia
+          </option>
+          <option value="OME">Nome (AK) - USA</option>
+          <option value="NSA">Noosa - Australia</option>
+          <option value="NLK">Norfolk Island - Australia</option>
+          <option value="ORF">Norfolk/Virginia Beach (VA) - USA</option>
+          <option value="YVQ">Norman Wells - Canada</option>
+          <option value="NRK">Norrkoeping - Sweden</option>
+          <option value="OTH">North Bend (OR) - USA</option>
+          <option value="ELH">North Eleuthera - Bahamas</option>
+          <option value="NWI">Norwich - United Kingdom</option>
+          <option value="EMA">
+            Nottingham - East Midlands - United Kingdom
+          </option>
+          <option value="NDB">Nouadhibou - Mauritania</option>
+          <option value="NKC">Nouakchott - Mauritania</option>
+          <option value="NOU">Noumea - New Caledonia</option>
+          <option value="QND">Novi Sad - Serbia</option>
+          <option value="OVB">Novosibirsk - Tolmachevo Airport - Russia</option>
+          <option value="NUE">Nürnberg (Nuremberg) - Germany</option>
+          <option value="NLD">Nuevo Laredo - Mexico</option>
+          <option value="TBU">
+            Nuku'alofa - Fua'Amotu International - Tonga
+          </option>
+
+          <option value="OAK">Oakland (CA) - USA</option>
+          <option value="OAX">Oaxaca - Xoxocotlan - Mexico</option>
+          <option value="ODE">Odense - Denmark</option>
+          <option value="ODS">Odessa - Ukraine</option>
+          <option value="ORB">Oerebro - Sweden</option>
+          <option value="OHD">Ohrid - Macedonia</option>
+          <option value="OIT">Oita - Japan</option>
+          <option value="OKJ">Okayama - Japan</option>
+          <option value="OKA">Okinawa, Ryukyo Island - Naha - Japan</option>
+          <option value="OKC">
+            Oklahoma City (OK) - Will Rogers World - USA
+          </option>
+          <option value="OLB">Olbia - Italy</option>
+          <option value="OLP">Olympic Dam - Australia</option>
+          <option value="OMA">Omaha (NE) - USA</option>
+          <option value="OND">Ondangwa - Namibia</option>
+          <option value="ONT">Ontario (CA) - USA</option>
+          <option value="ORN">Oran (Ouahran) - Algeria</option>
+          <option value="OAG">Orange - Australia</option>
+          <option value="SNA">Orange County (Santa Ana) (CA) - USA</option>
+          <option value="OMD">Oranjemund - Namibia</option>
+          <option value="AUA">
+            Oranjestad - Reina Beatrix International - Aruba
+          </option>
+          <option value="KOI">Orkney - Kirkwall - United Kingdom</option>
+          <option value="ORL">Orlando Metropolitan Area (FL) - USA</option>
+          <option value="MCO">
+            Orlando - International Airport (FL) - USA
+          </option>
+          <option value="ORS">Orpheus Island - Australia</option>
+          <option value="OSA">Osaka, Metropolitan Area - Japan</option>
+          <option value="ITM">Osaka - Itami - Japan</option>
+          <option value="KIX">
+            Osaka - Kansai International Airport - Japan
+          </option>
+          <option value="OSH">Oshkosh (WI) - USA</option>
+          <option value="OSI">Osijek - Croatia (Hrvatska)</option>
+          <option value="OSL">Oslo - Oslo Airport, Gardermoen - Norway</option>
+          <option value="FBU">Oslo - Fornebu - Norway</option>
+          <option value="TRF">Oslo - Sandefjord - Norway</option>
+          <option value="YOW">Ottawa - Hull - Canada</option>
+          <option value="ODA">Ouadda - Central African Republic</option>
+          <option value="OZZ">Ouarzazate - Morocco</option>
+          <option value="OUH">Oudtshoorn - South Africa</option>
+          <option value="OUA">Ouagadougou - Burkina Faso</option>
+          <option value="OUD">Oujda - Morocco</option>
+          <option value="OUL">Oulu - Finland</option>
+          <option value="OUK">Out Skerries (Shetland) - United Kingdom</option>
+          <option value="OVD">Oviedo - Spain</option>
+          <option value="OWB">Owensboro (KY) - USA</option>
+          <option value="OXR">Oxnard (CA) - USA</option>
+          <option value="UVE">Oyem - Gabon/Loyautte</option>
+
+          <option value="PAD">Paderborn/Lippstadt - Germany</option>
+          <option value="PAH">Paducah (KY) - USA</option>
+          <option value="PGA">Page/Lake Powell (AZ) - USA</option>
+          <option value="PPG">Pago Pago - American Samoa</option>
+          <option value="PKB">Pakersburg (WV) /Marietta (OH) - USA</option>
+          <option value="PMO">Palermo - Punta Raisi - Italy</option>
+          <option value="PMI">Palma de Mallorca - Spain</option>
+          <option value="PMW">Palmas - Brazil</option>
+          <option value="PMD">Palmdale/Lancaster (CA) - USA</option>
+          <option value="PMR">Palmerston North - New Zealand</option>
+          <option value="PSP">Palm Springs (CA) - USA</option>
+          <option value="PTY">
+            Panama City - Tocumen International - Panama
+          </option>
+          <option value="PFN">Panama City (FL) - USA</option>
+          <option value="PJG">Panjgur - Pakistan</option>
+          <option value="PNL">Pantelleria - Italy</option>
+          <option value="PPT">
+            Papeete - Faaa - French Polynesia (Tahiti)
+          </option>
+          <option value="PFO">Paphos - Cyprus</option>
+          <option value="PBO">Paraburdoo - Australia</option>
+          <option value="PBM">
+            Paramaribo - Zanderij International - Suriname
+          </option>
+          <option value="PAR">Paris - France</option>
+          <option value="CDG">Paris - Charles de Gaulle - France</option>
+          <option value="LBG">Paris - Le Bourget - France</option>
+          <option value="ORY">Paris - Orly - France</option>
+          <option value="PBH">Paro - Bhutan</option>
+          <option value="PSC">Pasco (WA) - USA</option>
+          <option value="PSI">Pasni - Pakistan</option>
+          <option value="PAT">Patna - India</option>
+          <option value="PYX">Pattaya - Thailand</option>
+          <option value="PUF">Pau - France</option>
+          <option value="PLN">Pellston (MI) - USA</option>
+          <option value="PEN">Penang International - Malaysia</option>
+          <option value="PDT">Pendelton (OR) - USA</option>
+          <option value="PNS">Pensacola (FL) - USA</option>
+          <option value="PIA">Peoria/Bloomington (IL) - USA</option>
+          <option value="PEI">Pereira - Colombia</option>
+          <option value="PGF">Perpignan - France</option>
+          <option value="PER">Perth International - Australia</option>
+          <option value="PEG">Perugia - Italy</option>
+          <option value="PSR">Pescara - Italy</option>
+          <option value="PEW">Peshawar - Pakistan</option>
+          <option value="PSG">Petersburg (AK) - USA</option>
+          <option value="PHW">Phalaborwa - South Africa</option>
+          <option value="PHL">Philadelphia (PA) - International - USA</option>
+          <option value="PNH">Phnom Penh - Pochentong - Cambodia</option>
+          <option value="PHX">
+            Phoenix (AZ) - Sky Harbor International - USA
+          </option>
+          <option value="HKT">Phuket - Thailand</option>
+          <option value="PIR">Pierre (SD) - USA</option>
+          <option value="PZB">Pietermaritzburg - South Africa</option>
+          <option value="PTG">Pietersburg - South Africa</option>
+          <option value="NTY">Pilanesberg/Sun City - South Africa</option>
+          <option value="PSA">Pisa - Galileo Galilei - Italy</option>
+          <option value="PIT">
+            Pittsburgh International Airport (PA) - USA
+          </option>
+          <option value="PLB">Plattsburgh (NY) - USA</option>
+          <option value="PBZ">Plettenberg Bay - South Africa</option>
+          <option value="PIH">Pocatello (ID) - USA</option>
+          <option value="TGD">Podgorica - Montenegro</option>
+          <option value="PNI">Pohnpei - Micronesia</option>
+          <option value="PTP">Pointe a Pitre - Guadeloupe</option>
+          <option value="PNR">Pointe Noire - Congo (ROC)</option>
+          <option value="PIS">Poitiers - Biard - France</option>
+          <option value="PSE">Ponce - Puerto Rico</option>
+          <option value="PDL">Ponta Delgada - Portugal</option>
+          <option value="POR">Pori - Finland</option>
+          <option value="CLM">Port Angeles (WA) - USA</option>
+          <option value="PAP">Port au Prince - Haiti</option>
+          <option value="PUG">Port Augusta - Australia</option>
+          <option value="PLZ">Port Elizabeth - South Africa</option>
+          <option value="POG">Port Gentil - Gabon</option>
+          <option value="PHC">Port Harcourt - Nigeria</option>
+          <option value="PHE">Port Hedland - Australia</option>
+          <option value="PTJ">Portland - Australia</option>
+          <option value="PWM">Portland (ME) - USA</option>
+          <option value="PDX">Portland International (OR) - USA</option>
+          <option value="PLO">Port Lincoln - Australia</option>
+          <option value="PQQ">Port Macquarie - Australia</option>
+          <option value="YPN">Port Menier, PQ - Canada</option>
+          <option value="POM">
+            Port Moresby - Jackson Field - Papua New Guinea
+          </option>
+          <option value="OPO">Porto - Portugal</option>
+          <option value="POA">
+            Porto Alegre - Salgado Filho International Airport - Brazil
+          </option>
+          <option value="POS">
+            Port of Spain - Piarco International - Trinidad and Tobago
+          </option>
+          <option value="PSD">Port Said - Egypt</option>
+          <option value="PXO">Porto Santo - Portugal</option>
+          <option value="PVH">Porto Velho - Brazil</option>
+          <option value="VLI">Port Vila - Vanuatu</option>
+          <option value="POU">Poughkeepsie (NY) - USA</option>
+          <option value="POZ">Poznan, Lawica - Poland</option>
+          <option value="PRG">
+            Prague - Václav Havel Airport (formerly Ruzyne) - Czech Republic
+          </option>
+          <option value="RAI">
+            Praia - Nelson Mandela International Airport - Cape Verde
+          </option>
+          <option value="PQI">Presque Island (ME) - USA</option>
+          <option value="PRY">Pretoria - Wonderboom Apt. - South Africa</option>
+          <option value="PVK">Preveza/Lefkas - Greece</option>
+          <option value="YXS">Prince George - Canada</option>
+          <option value="YPR">Prince Rupert/Digby Island - Canada</option>
+          <option value="PRN">Pristina - Serbia</option>
+          <option value="PPP">Prosperpine - Australia</option>
+          <option value="PVD">Providence (RI) - USA</option>
+          <option value="SCC">Prudhoe Bay (AK) - USA</option>
+          <option value="PBC">Puebla - Mexico</option>
+          <option value="PUB">Pueblo (CO) - USA</option>
+          <option value="PXM">Puerto Escondido - Mexico</option>
+          <option value="PZO">Puerto Ordaz - Venezuela</option>
+          <option value="POP">Puerto Plata - Dominican Republic</option>
+          <option value="PVR">Puerto Vallarta - Mexico</option>
+          <option value="XPK">Pukatawagan - Canada</option>
+          <option value="PUY">Pula - Croatia (Hrvatska)</option>
+          <option value="PUW">Pullman (WA) - USA</option>
+          <option value="PNQ">Pune - India, Maharashtra</option>
+          <option value="PUQ">
+            Punta Arenas - Presidente Carlos Ibáñez del Campo - Chile
+          </option>
+          <option value="PUJ">
+            Punta Cana - Punta Cana International - Dominican Republic
+          </option>
+          <option value="PUS">
+            Pu San (Busan) - Gimhae International Airport - South Korea
+          </option>
+          <option value="FNJ">
+            Pyongyang - Sunan International Airport - North Korea
+          </option>
+
+          <option value="YQB">Quebec - Quebec International - Canada</option>
+          <option value="UEE">Queenstown - Australia</option>
+          <option value="ZQN">Queenstown - New Zealand</option>
+          <option value="UET">Quetta - Pakistan</option>
+          <option value="TAO">Qingdao - Shandong, PR China</option>
+          <option value="UIP">Quimper - France</option>
+          <option value="UIN">Quincy (IL) - USA</option>
+          <option value="UIO">
+            Quito - Mariscal Sucre International Airport - Ecuador
+          </option>
+
+          <option value="RBA">Rabat - Rabat-Salé Airport - Morocco</option>
+          <option value="RYK">
+            Rahim Yar Khan - Shaikh Zayed International Airport - Pakistan
+          </option>
+          <option value="RFP">Raiatea - French Polynesia</option>
+          <option value="YOP">Rainbow Lake, AB - Canada</option>
+          <option value="RAJ">Rajkot - India</option>
+          <option value="RDU">Raleigh/Durham (NC) - USA</option>
+          <option value="IXR">Ranchi - India</option>
+          <option value="RGI">Rangiroa - French Polynesia</option>
+          <option value="RGN">Rangoon (Yangon) - Mingaladon - Myanmar</option>
+          <option value="RAP">Rapid City (SD) - USA</option>
+          <option value="RAR">Rarotonga - Cook Island</option>
+          <option value="RKT">
+            Ras al Khaymah (Ras al Khaimah) - United Arab Emirates
+          </option>
+          <option value="RAZ">Rawala Kot - Pakistan</option>
+          <option value="RWP">Rawalpindi - Pakistan</option>
+          <option value="RDG">Reading (PA) - USA</option>
+          <option value="REC">
+            Recife - Guararapes-Gilberto Freyre International - Brazil
+          </option>
+          <option value="RDD">Redding (CA) - USA</option>
+          <option value="RDM">Redmond (OR) - USA</option>
+          <option value="REG">Reggio Calabria - Italy</option>
+          <option value="YQR">Regina - Canada</option>
+          <option value="TFS">Reina Sofia - Teneriffa/Spain</option>
+          <option value="RNS">Rennes - France</option>
+          <option value="RNO">Reno (NV) - USA</option>
+          <option value="YRB">Resolute Bay - Canada</option>
+          <option value="REU">Reus - Spain</option>
+          <option value="REK">Reykjavik - Metropolitan Area - Iceland</option>
+          <option value="KEF">
+            Reykjavik - Keflavik International - Iceland
+          </option>
+          <option value="RHI">Rhinelander (WI) - USA</option>
+          <option value="RHO">Rhodos - Greece</option>
+          <option value="RCB">Richards Bay - South Africa</option>
+          <option value="RIC">Richmond (VA) - USA</option>
+          <option value="RIX">Riga - Latvia</option>
+          <option value="RJK">Rijeka - Croatia (Hrvatska)</option>
+          <option value="RMI">Rimini - Italy</option>
+          <option value="RBR">
+            Rio Branco - Plácido de Castro International Airport - Brazil
+          </option>
+          <option value="GIG">Rio de Janeiro - Galeao - Brazil</option>
+          <option value="SDU">Rio de Janeiro - Santos Dumont - Brazil</option>
+          <option value="RIO">Rio de Janeiro - Brazil</option>
+          <option value="RUH">
+            Riyadh - King Khaled International - Saudi Arabia
+          </option>
+          <option value="RNE">Roanne - France</option>
+          <option value="ROA">Roanoke (VA) - USA</option>
+          <option value="RTB">Roatan - Honduras</option>
+          <option value="RST">Rochester (MN) - USA</option>
+          <option value="ROC">Rochester (NY) - USA</option>
+          <option value="RSD">Rock Sound - Bahamas</option>
+          <option value="RKS">Rock Springs (WY) - USA</option>
+          <option value="RFD">Rockford (IL) - USA</option>
+          <option value="ROK">Rockhampton - Australia</option>
+          <option value="RKD">Rockland (ME) - USA</option>
+          <option value="RWI">Rocky Mount - Wilson (NC) - USA</option>
+          <option value="RDZ">Rodez - France</option>
+          <option value="RRG">Rodrigues Island - Mauritius</option>
+          <option value="RNN">Roenne - Denmark</option>
+          <option value="ROM">Rome - Italy</option>
+          <option value="CIA">Rome - Ciampino - Italy</option>
+          <option value="FCO">Rome - Fuimicino - Italy</option>
+          <option value="RNB">Ronneby - Sweden</option>
+          <option value="ROS">Rosario - Argentina</option>
+          <option value="RVI">
+            Rostov-on-Don - Rostov-on-Don Airport - Russia
+          </option>
+          <option value="ROV">
+            Rostov-on-Don - Platov International Airport - Russia
+          </option>
+          <option value="ROT">Rotorua - New Zealand</option>
+          <option value="RTM">Rotterdam - Netherlands</option>
+          <option value="RVN">Rovaniemi - Finland</option>
+          <option value="NDU">Rundu - Namibia</option>
+          <option value="ROU">Ruse - Bulgaria</option>
+
+          <option value="SCN">Saarbruecken - Germany</option>
+          <option value="SMF">Sacramento (CA) - USA</option>
+          <option value="SDS">Sado Shima - Japan</option>
+          <option value="MBS">Saginaw/Bay City/Midland (MI) - USA</option>
+          <option value="SDT">Saidu Sharif - Pakistan</option>
+          <option value="SGN">
+            Saigon (Ho Chi Minh City) - Tan Son Nhat International - Viet Nam
+          </option>
+          <option value="SBK">Saint Brieuc - France</option>
+          <option value="RUN">
+            Saint Denis - Roland Garros Airport - Reunion
+          </option>
+          <option value="YSJ">Saint John - Canada</option>
+          <option value="SPN">Saipan - Northern Mariana Islands</option>
+          <option value="SID">Sal - Cape Verde</option>
+          <option value="SLL">Salalah - Oman</option>
+          <option value="SLE">Salem (OR) - USA</option>
+          <option value="SNS">Salinas (CA) - USA</option>
+          <option value="SNC">Salinas - Ecuador</option>
+          <option value="SAY">Salisbury - Zimbabwe</option>
+          <option value="SBY">Salisbury (MD) - USA</option>
+          <option value="SKG">Saloniki - Greece</option>
+          <option value="SLA">Salta, Gen Belgrano - Argentina</option>
+          <option value="SLC">Salt Lake City (UT) - USA</option>
+          <option value="SSA">
+            Salvador - Salvador International Airport - Brazil
+          </option>
+          <option value="SZG">Salzburg - W.A. Mozart - Austria</option>
+          <option value="KUF">
+            Samara - Kurumoch International Airport - Russia
+          </option>
+          <option value="SKD">
+            Samarkand - Samarkand International Airport - Uzbekistan
+          </option>
+          <option value="SMI">Samos - Greece</option>
+          <option value="SZF">Samsun - Turkey</option>
+          <option value="ADZ">San Andres - Colombia</option>
+          <option value="SJT">San Angelo (TX) - USA</option>
+          <option value="SAT">San Antonio (TX) - USA</option>
+          <option value="BRC">San Carlos de Bariloche - Argentina</option>
+          <option value="SAN">
+            San Diego - Lindberg Field International (CA) - USA
+          </option>
+          <option value="SFO">
+            San Francisco - International Airport, SA - USA
+          </option>
+          <option value="SJD">San Jose Cabo - Mexico</option>
+          <option value="SJO">San Jose - Costa Rica</option>
+          <option value="SJC">San Jose (CA) - USA</option>
+          <option value="SJU">
+            San Juan - Luis Munoz Marin International Airport - Puerto Rico
+          </option>
+          <option value="SBP">San Luis Obisco (CA) - USA</option>
+          <option value="SLP">San Luis Potosi - Mexico</option>
+          <option value="SPY">San Pedro - Cote d'Ivoire</option>
+          <option value="SAP">San Pedro Sula - Honduras</option>
+          <option value="ZSA">San Salvador - Bahamas</option>
+          <option value="SAL">San Salvador - El Salvador</option>
+          <option value="EAS">San Sebastian - Spain</option>
+          <option value="SAH">
+            Sanaa (Sana'a) - Sana'a International - Yemen
+          </option>
+          <option value="YZP">Sandspit - Canada</option>
+          <option value="SNA">Santa Ana - John Wayne Airport (CA) - USA</option>
+          <option value="SBA">Santa Barbara (CA) - USA</option>
+          <option value="SPC">Santa Cruz de la Palma - Spain</option>
+          <option value="SRZ">Santa Cruz de la Sierra - Bolivia</option>
+          <option value="SKV">Santa Katarina - Mount Sinai - Egypt</option>
+          <option value="SMA">Santa Maria - Portugal</option>
+          <option value="SMX">Santa Maria (CA) - USA</option>
+          <option value="SDR">Santander - Spain</option>
+          <option value="STS">Santa Rosa (CA) - USA</option>
+          <option value="SRB">Santa Rosa - Bolivia</option>
+          <option value="SRA">Santa Rosa - Brazil</option>
+          <option value="RSA">Santa Rosa - Argentina</option>
+          <option value="SDH">Santa Rosa, Copan - Honduras</option>
+          <option value="SSL">Santa Rosalia - Colombia</option>
+          <option value="SRL">Santa Rosalia - Mexico</option>
+          <option value="SCU">Santiago - Antonio Maceo Airport - Cuba</option>
+          <option value="SCL">
+            Santiago de Chile - Arturo Merino Benitez - Chile
+          </option>
+          <option value="SCQ">Santiago de Compostela - Spain</option>
+          <option value="SON">Santo - Vanuatu</option>
+          <option value="SDQ">Santo Domingo - Dominican Republic</option>
+          <option value="SLZ">
+            Sao Luis - Marechal Cunha Machado International - Brazil
+          </option>
+          <option value="SAO">Sao Paulo - Brazil</option>
+          <option value="CGH">Sao Paulo - Congonhas - Brazil</option>
+          <option value="GRU">Sao Paulo - Guarulhos - Brazil</option>
+          <option value="VCP">Sao Paulo - Viracopos - Brazil</option>
+          <option value="TMS">Sao Tome - Sao Tome & Principe</option>
+          <option value="SPK">Sapporo - Hokkaido, Japan</option>
+          <option value="OKD">Sapporo - Okadama - Hokkaido, Japan</option>
+          <option value="CTS">Sapporo - New Chitose Airport - Japan</option>
+          <option value="SJJ">Sarajevo - Bosnia and Herzegovina</option>
+          <option value="SKX">Saransk - Saransk Airport - Russia</option>
+          <option value="SRQ">Sarasota/Bradenton (FL) - USA</option>
+          <option value="YXE">Saskatoon - Canada</option>
+          <option value="ZSS">Sassandra - Cote d'Ivoire</option>
+          <option value="SAV">Savannah (GA) - USA</option>
+          <option value="SVL">Savonlinna - Finland</option>
+          <option value="TAB">
+            Scarborough - Crown Point International - Trinidad and Tobago
+          </option>
+          <option value="NSO">Scone - Australia</option>
+          <option value="SCF">Scottsdale (AZ) - USA</option>
+          <option value="SEA">Seattle/Tacoma (WA) - USA</option>
+          <option value="SEB">Sehba - Libya</option>
+          <option value="SJY">Seinaejoki - Finland</option>
+          <option value="PKW">Selibi Phikwe - Botswana</option>
+          <option value="SDJ">Sendai - Japan</option>
+          <option value="ICN">
+            Seoul - Incheon International Airport - South Korea
+          </option>
+          <option value="SEL">Seoul - Kimpo - South Korea</option>
+          <option value="SVQ">Sevilla - Spain</option>
+          <option value="SFA">Sfax - Tunisia</option>
+          <option value="ZTM">Shamattawa, MB - Canada</option>
+          <option value="SHA">Shanghai - Hongqiao - China</option>
+          <option value="PVG">Shanghai - Pu Dong - China</option>
+          <option value="SNN">Shannon (Limerick) - Ireland</option>
+          <option value="SHJ">Sharjah - United Arab Emirates</option>
+          <option value="SSH">Sharm El Sheikh - Egypt</option>
+          <option value="SZD">Sheffield, City Airport - United Kingdom</option>
+          <option value="DSA">
+            Sheffield, Doncaster, Robin Hood International Airport - United
+            Kingdom
+          </option>
+          <option value="SHD">Shenandoah Valley/Stauton (VA) - USA</option>
+          <option value="SHE">Shenyang - Liaoning, PR China</option>
+          <option value="SZX">
+            Shenzhen - Shenzhen Bao'an International - Guangdong, PR China
+          </option>
+          <option value="SHR">Sheridan (WY) - USA</option>
+          <option value="SHV">Shreveport, La - USA</option>
+          <option value="JHQ">Shute Harbour - Australia</option>
+          <option value="SBW">Sibu - Malaysia</option>
+          <option value="SDY">Sidney (MT) - USA</option>
+          <option value="SLS">Silistra - Bulgaria</option>
+          <option value="SIP">Simferopol - Ukraine</option>
+          <option value="MPD">Sindhri - Pakistan</option>
+          <option value="SIN">Singapore - Changi - Singapore</option>
+          <option value="QPG">Singapore - Paya Lebar - Singapore</option>
+          <option value="XSP">Singapore - Seletar - Singapore</option>
+          <option value="SIX">Singleton - Australia</option>
+          <option value="SUX">Sioux City IA - USA</option>
+          <option value="FSD">Sioux Falls (SD) - USA</option>
+          <option value="SIS">Sishen - South Africa</option>
+          <option value="SIT">Sitka (AK) - USA</option>
+          <option value="VAS">Sivas - Turkey</option>
+          <option value="SEW">Siwa - Egypt</option>
+          <option value="SGY">Skagway (AK) - USA</option>
+          <option value="KDU">Skardu - Pakistan</option>
+          <option value="JSI">Skiathos - Greece</option>
+          <option value="SKP">Skopje - Macedonia</option>
+          <option value="SKS">Skrydstrup - Denmark</option>
+          <option value="SZK">Skukuza - South Africa</option>
+          <option value="SXL">Sligo - Ireland</option>
+          <option value="YYD">Smithers - Canada</option>
+          <option value="SOT">Sodankylae - Finland</option>
+          <option value="SGD">Soenderborg - Denmark</option>
+          <option value="SFJ">Soendre Stroemfjord - Greenland</option>
+          <option value="SOF">Sofia - Vrazhdebna - Bulgaria</option>
+          <option value="SOG">Sogndal - Norway</option>
+          <option value="SOU">Southampton - Eastleigh - United Kingdom</option>
+          <option value="SBN">South Bend (IN) - USA</option>
+          <option value="XSI">South Indian Lake, MB - Canada</option>
+          <option value="SOI">South Molle Island - Australia</option>
+          <option value="SEN">Southend (London) - United Kingdom</option>
+          <option value="SPU">Split - Croatia (Hrvatska)</option>
+          <option value="GEG">Spokane (WA) - USA</option>
+          <option value="SBU">Springbok - South Africa</option>
+          <option value="SPI">Springfield (IL) - USA</option>
+          <option value="SGF">Springfield (MO) - USA</option>
+          <option value="SXR">Srinagar - India</option>
+          <option value="YIF">St. Augustin, PQ - Canada</option>
+          <option value="STX">St. Croix - Virgin Islands (U.S.)</option>
+          <option value="EBU">St. Etienne - France</option>
+          <option value="SGU">St. George (UT) - USA</option>
+          <option value="YYT">St. John's - Canada</option>
+          <option value="SKB">St. Kitts - St. Kitts and Nevis</option>
+          <option value="STL">
+            St. Louis (MO) Lambert–St. Louis International Airport - USA
+          </option>
+          <option value="UVF">St. Lucia Hewanorra - Saint Lucia</option>
+          <option value="SLU">St. Lucia Vigle - Saint Lucia</option>
+          <option value="SXM">St. Marteen - Netherlands Antilles</option>
+          <option value="SFG">St. Martin - St. Martin (Guadeloupe)</option>
+          <option value="LED">
+            St. Petersburg (Leningrad) - Pulkovo - Russia
+          </option>
+          <option value="FSP">St. Pierre, NF - Canada</option>
+          <option value="STT">St. Thomas - Virgin Islands (U.S.)</option>
+          <option value="SVD">
+            St. Vincent - Saint Vincent and the Grenadines
+          </option>
+          <option value="STN">Stansted (London) - United Kingdom</option>
+          <option value="SCE">State College/Belefonte (PA) - USA</option>
+          <option value="SVG">Stavanger - Norway</option>
+          <option value="HDN">Steamboat Springs (CO) - USA</option>
+          <option value="SZZ">Stettin - Poland</option>
+          <option value="STO">Stockholm Metropolitan Area - Sweden</option>
+          <option value="ARN">Stockholm - Arlanda - Sweden</option>
+          <option value="BMA">Stockholm - Bromma - Sweden</option>
+          <option value="SCK">Stockton (CA) - USA</option>
+          <option value="SYY">Stornway - United Kingdom</option>
+          <option value="SXB">Strasbourg - Strasbourg Airport - France</option>
+          <option value="KBY">Streaky Bay - Australia</option>
+          <option value="STR">Stuttgart - Echterdingen - Germany</option>
+          <option value="SUL">Sui - Pakistan</option>
+          <option value="SKZ">Sukkur - Pakistan</option>
+          <option value="LSI">Sumburgh (Shetland) - United Kingdom</option>
+          <option value="SUN">Sun Valley (ID) - USA</option>
+          <option value="SDL">Sundsvall - Sweden</option>
+          <option value="MCY">Sunshine Coast - Australia</option>
+          <option value="SUB">Surabaya - Juanda - Indonesia</option>
+          <option value="STV">Surat - India</option>
+          <option value="SUV">Suva - Nausori Airport (Luvuluvu) - Fiji</option>
+          <option value="SWP">Swakopmund - Namibia</option>
+          <option value="SYD">Sydney - Sydney Airport - Australia</option>
+          <option value="ZYL">Sylhet - Bangladesh</option>
+          <option value="SYR">Syracuse (NY) - USA</option>
+
+          <option value="TUU">Tabuk - Saudi Arabia</option>
+          <option value="TIF">Taif - Saudi Arabia</option>
+          <option value="TPE">Taipei - Chiang Kai Shek - Taiwan</option>
+          <option value="TAY">Taipei - Sung Shan - Taiwan</option>
+          <option value="TYN">Taiyuan - Shanxi, PR China</option>
+          <option value="TAK">Takamatsu - Japan</option>
+          <option value="TKA">Talkeetna (AK) - USA</option>
+          <option value="TLH">Tallahassee (FL) - USA</option>
+          <option value="QUF">Tallinn - Pirita Harbour - Estonia</option>
+          <option value="TLL">Tallinn - Ulemiste - Estonia</option>
+          <option value="TPA">Tampa - International (FL) - USA</option>
+          <option value="TMP">Tampere - Finland</option>
+          <option value="TAM">Tampico - Gen. F. Javier Mina - Mexico</option>
+          <option value="TMW">Tamworth - Australia</option>
+          <option value="TNG">Tangier - Boukhalef - Morocco</option>
+          <option value="TRO">Taree - Australia</option>
+          <option value="TGV">Targovishte - Bulgaria</option>
+          <option value="TAS">Tashkent - International - Uzbekistan</option>
+          <option value="TWU">Tawau - Malaysia</option>
+          <option value="TBS">Tbilisi - Novo Alexeyevka - Georgia</option>
+          <option value="TEU">Te Anau - New Zealand</option>
+          <option value="MME">
+            Teesside, Durham Tees Valley - United Kingdom
+          </option>
+          <option value="TGU">Tegucigalpa - Honduras</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="TEQ">Tekirdag - Corlu - Turkey</option>
+          <option value="TLV">
+            Tel Aviv - Ben Gurion International - Israel
+          </option>
+          <option value="TEX">Telluride (CO) - USA</option>
+          <option value="TEM">Temora - Australia</option>
+          <option value="TCI">Tenerife - Spain</option>
+          <option value="TFS">Tenerife - Sur Reina Sofia - Spain</option>
+          <option value="TFN">Tenerife - Norte Los Rodeos - Spain</option>
+          <option value="TCA">Tennant Creek - Australia</option>
+          <option value="TER">Terceira - Portugal</option>
+          <option value="THE">Teresina - Brazil</option>
+          <option value="TMZ">Termez (Termes) - Uzbekistan</option>
+          <option value="YXT">Terrace - Canada</option>
+          <option value="HUF">Terre Haute (IN) - USA</option>
+          <option value="TXK">Texarkana (AR) - USA</option>
+          <option value="TCU">Thaba'Nchu - South Africa</option>
+          <option value="SKS">Thisted - Denmark</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="THR">Tehran (Teheran) - Mehrabad - Iran</option>
+          <option value="TED">Thisted - Denmark</option>
+          <option value="TRV">Thiruvananthapuram International Airport</option>
+          <option value="YTH">Thompson - Canada</option>
+          <option value="KTB">Thorne Bay (AK) - USA</option>
+          <option value="YQT">Thunder Bay - Canada</option>
+          <option value="TIS">Thursday Island - Australia</option>
+          <option value="TSN">Tianjin - China</option>
+          <option value="TIJ">Tijuana - Rodriguez - Mexico</option>
+          <option value="TOD">Tioman - Indonesia</option>
+          <option value="TIA">Tirana - Rinas - Albania</option>
+          <option value="TRZ">Tiruchirapally - India</option>
+          <option value="TIV">Tivat - Montenegro</option>
+          <option value="TAB">Tobago - Trinidad and Tobago</option>
+          <option value="TKS">Tokushima - Japan</option>
+          <option value="TYO">Tokyo - Japan</option>
+          <option value="HND">Tokyo - Haneda - Japan</option>
+          <option value="NRT">Tokyo - Narita - Japan</option>
+          <option value="TOL">Toledo (OH) - USA</option>
+          <option value="TPR">Tom Price - Australia</option>
+          <option value="TWB">Toowoomba - Australia</option>
+          <option value="YTZ">
+            Toronto - Billy Bishop Toronto City Airport - Canada
+          </option>
+          <option value="YYZ">
+            Toronto - Toronto Pearson International Airport - Canada
+          </option>
+          <option value="YTO">Toronto - Canada</option>
+          <option value="TOV">Tortola - British Virgin Islands</option>
+          <option value="TOU">Touho - New Caledonia</option>
+          <option value="TLS">Toulouse - Blagnac Airport - France</option>
+          <option value="TSV">Townsville - Australia</option>
+          <option value="TOY">Toyama - Japan</option>
+          <option value="TZX">Trabzon - Turkey</option>
+          <option value="TPS">Trapani - Italy</option>
+          <option value="TVC">Traverse City (MI) - USA</option>
+          <option value="TCB">Treasure Cay - Bahamas</option>
+          <option value="TTN">Trenton/Princeton (NJ) - USA</option>
+          <option value="TSF">Treviso - Italy</option>
+          <option value="TRI">Tri-Cities Regional (TN) /VA - USA</option>
+          <option value="TRS">Trieste - Italy</option>
+          <option value="TIP">Tripoli - Tripoli International - Libya</option>
+          <option value="TOS">Tromsoe - Norway</option>
+          <option value="TRD">Trondheim - Norway</option>
+          <option value="TSB">Tsumeb - Namibia</option>
+          <option value="TUS">Tucson (AZ) - USA</option>
+          <option value="TUP">Tulepo (MS) - USA</option>
+          <option value="TUL">Tulsa (OK) - USA</option>
+          <option value="TUN">Tunis - Carthage - Tunisia</option>
+          <option value="TUK">Turbat - Pakistan</option>
+          <option value="TRN">Turin - Italy</option>
+          <option value="TKU">Turku - Finland</option>
+          <option value="TCL">Tuscaloosa (AL) - USA</option>
+          <option value="TGZ">Tuxtla Gutierrez - Mexico</option>
+          <option value="TWF">Twin Falls (ID) - USA</option>
+          <option value="TYR">Tyler (TX) - USA</option>
+
+          <option value="UAH">Ua Huka - French Polynesia</option>
+          <option value="UAP">Ua Pou - French Polynesia</option>
+          <option value="UBJ">Ube - Japan</option>
+          <option value="UBA">Uberaba - Brazil</option>
+          <option value="UDI">
+            Uberlandia - Eduardo Gomes Airport - Brazil
+          </option>
+          <option value="UBP">
+            Ubon Ratchathani - Muang Ubon Airport - Thailand
+          </option>
+          <option value="UDR">Udaipur - Dabok Airport - India</option>
+          <option value="UDE">Uden - Volkel Airport - Netherlands</option>
+          <option value="UTH">Udon Thani - Thailand</option>
+          <option value="UFA">Ufa - Russia</option>
+          <option value="UHE">Uherske Hradiste - Czech Republic</option>
+          <option value="UGO">Uige - Angola</option>
+          <option value="UPG">
+            Ujung Pandang - Hasanudin Airport - Indonesia
+          </option>
+          <option value="UCT">Ukhta - Russia</option>
+          <option value="UKI">Ukiah (CA) - USA</option>
+          <option value="ULN">
+            Ulaanbaatar - Buyant Uhaa Airport - Mongolia
+          </option>
+          <option value="UUD">Ulan-Ude - Russia</option>
+          <option value="HLH">Ulanhot - PR China</option>
+          <option value="ULB">Ulei - Vanuatu</option>
+          <option value="USN">Ulsan - South Korea</option>
+          <option value="ULD">Ulundi - South Africa</option>
+          <option value="UME">Umea - Sweden</option>
+          <option value="YUD">Umiujaq - Canada</option>
+          <option value="UTT">Umtata - South Africa</option>
+          <option value="UNK">Unalakleet (AK) - USA</option>
+          <option value="UNI">
+            Union Island - Saint Vincent and the Grenadines
+          </option>
+          <option value="UNT">
+            Unst (Shetland Island) - Baltasound Airport - United Kingdom
+          </option>
+          <option value="UPL">Upala - Costa Rica</option>
+          <option value="JUV">
+            Upernavik - Upernavik Heliport - Greenland
+          </option>
+          <option value="UTN">Upington - South Africa</option>
+          <option value="UPP">Upolu Point (HI) - USA</option>
+          <option value="YBE">Uranium City - Canada</option>
+          <option value="UGC">Urgench - Uzbekistan</option>
+          <option value="URM">Uriman - Venezuela</option>
+          <option value="OMH">Urmiehm (Orumieh) - Iran</option>
+          <option value="UPN">Uruapan - Mexico</option>
+          <option value="URB">
+            Urubupunga - Ernesto Pochler Airport - Brazil
+          </option>
+          <option value="URG">Uruguaiana - Ruben Berta Airport - Brazil</option>
+          <option value="URC">Urumqi - Xinjiang, PR China</option>
+          <option value="URZ">Uruzgan - Afghanistan</option>
+          <option value="USH">
+            Ushuaia - Islas Malvinas Airport - Argentina
+          </option>
+          <option value="UTP">Utapao (Pattaya) - Thailand</option>
+          <option value="UCA">Utica (NY) - Oneida County Airport - USA</option>
+          <option value="UII">Utila - Honduras</option>
+          <option value="UMD">Uummannaq - Greenland</option>
+          <option value="UDJ">Uzhgorod - Ukraine</option>
+
+          <option value="VAA">Vaasa - Finland</option>
+          <option value="VXO">Vaexjoe - Sweden</option>
+          <option value="EGE">Vail (CO) - USA</option>
+          <option value="YVO">Val d'Or - Canada</option>
+          <option value="VDZ">Valdez (AK) - USA</option>
+          <option value="VLD">Valdosta (GA) - USA</option>
+          <option value="VLC">Valencia - Spain</option>
+          <option value="VLN">Valencia - Venezuela</option>
+          <option value="VLL">Valladolid - Spain</option>
+          <option value="VAP">Valparaiso - Chile</option>
+          <option value="VDE">Valverde - Spain</option>
+          <option value="VAN">Van - Ferit Melen - Turkey</option>
+          <option value="YVR">
+            Vancouver - Vancouver International - Canada
+          </option>
+          <option value="VRA">Varadero - Cuba</option>
+          <option value="VNS">Varanasi - India</option>
+          <option value="VRK">Varkaus - Finland</option>
+          <option value="VAR">Varna - Bulgaria</option>
+          <option value="VST">Vasteras - Sweden</option>
+          <option value="VLU">Velikiye Luki (Welikije Luki) - Russia</option>
+          <option value="VCE">Venice - Marco Polo - Italy</option>
+          <option value="VER">Veracruz - Mexico</option>
+          <option value="VEL">Vernal (UT) - USA</option>
+          <option value="VRB">Vero Beach/Ft. Pierce (FL) - USA</option>
+          <option value="VBS">Verona (Brescia) Montichiari - Italy</option>
+          <option value="VRN">Verona - Italy</option>
+          <option value="YYJ">Victoria - Canada</option>
+          <option value="VFA">Victoria Falls - Zimbabwe</option>
+          <option value="VID">Vidin - Bulgaria</option>
+          <option value="VTE">Vientiane - Wattay - Lao PDR</option>
+          <option value="VGO">Vigo - Spain</option>
+          <option value="VSA">Villahermosa - Mexico</option>
+          <option value="VNO">Vilnius - Lithuania</option>
+          <option value="VIJ">Virgin Gorda - Virgin Islands (British)</option>
+          <option value="VIS">Visalia (CA) - USA</option>
+          <option value="VBY">Visby - Sweden</option>
+          <option value="VIT">Vitoria - Spain</option>
+          <option value="VIX">
+            Vitoria - Eurico de Aguiar Salles Airport - Brazil
+          </option>
+          <option value="VYD">Vryheid - South Africa</option>
+
+          <option value="YWK">Wabush - Canada</option>
+          <option value="ACT">Waco (TX) - USA</option>
+          <option value="WGA">Wagga - Australia</option>
+          <option value="ALW">Walla Walla (WA) - USA</option>
+          <option value="WLS">Wallis - Wallis and Futuna Islands</option>
+          <option value="WVB">Walvis Bay - South Africa</option>
+          <option value="WMB">Warrnambool - Australia</option>
+          <option value="WAW">Warsaw - Frédéric Chopin - Poland</option>
+          <option value="BWI">
+            Washington DC - Baltimore Washington International - USA
+          </option>
+          <option value="IAD">
+            Washington DC - Dulles International - USA
+          </option>
+          <option value="DCA">
+            Washington DC - Ronald Reagan National - USA
+          </option>
+          <option value="WAS">Washington DC - USA</option>
+          <option value="ALO">Waterloo IA - USA</option>
+          <option value="ATY">Watertown (SD) - USA</option>
+          <option value="CWA">Wausau/Stevens Point (WI) - USA</option>
+          <option value="WEI">Weipa - Australia</option>
+          <option value="WEL">Welkom - South Africa</option>
+          <option value="WLG">Wellington - New Zealand</option>
+          <option value="EAT">Wenatchee (WA) - USA</option>
+          <option value="PBI">West Palm Beach (FL) - USA</option>
+          <option value="WYS">West Yellowstone (MT) - USA</option>
+          <option value="GWT">Westerland, Sylt Airport - Germany</option>
+          <option value="WHK">Whakatane - New Zealand</option>
+          <option value="YXN">Whale Cove, NT - Canada</option>
+          <option value="WRE">Whangarei - New Zealand</option>
+          <option value="HPN">White Plains (NY) - USA</option>
+          <option value="YXY">Whitehorse - Canada</option>
+          <option value="HAP">Whitsunday Resort - Australia</option>
+          <option value="WYA">Whyalla - Australia</option>
+          <option value="SPS">Wichita Falls (TX) - USA</option>
+          <option value="ICT">Wichita (KS) - USA</option>
+          <option value="WIC">Wick - United Kingdom</option>
+          <option value="WHM">Wickham - Australia</option>
+          <option value="VIE">
+            Wien (Vienna) - Vienna International - Austria
+          </option>
+          <option value="WIE">Wiesbaden, Air Base - Germany</option>
+          <option value="AVP">Wilkes Barre/Scranton (PA) - USA</option>
+          <option value="IPT">Williamsport (PA) - USA</option>
+          <option value="ISL">Williston (ND) - USA</option>
+          <option value="ILM">Wilmington (NC) - USA</option>
+          <option value="VNO">Wilna (Vilnius) - Lithuania</option>
+          <option value="WUN">Wiluna - Australia</option>
+          <option value="ERS">Windhoek - Eros - Namibia</option>
+          <option value="WDH">
+            Windhoek - Hosea Kutako International - Namibia
+          </option>
+          <option value="YQG">Windsor Ontario - Canada</option>
+          <option value="YWG">Winnipeg International - Canada</option>
+          <option value="OLF">Wolf Point (MT) - USA</option>
+          <option value="WOL">Wollongong - Australia</option>
+          <option value="UMR">Woomera - Australia</option>
+          <option value="ORH">Worcester (MA) - USA</option>
+          <option value="WRL">Worland (WY) - USA</option>
+          <option value="WRG">Wrangell (AK) - USA</option>
+          <option value="WUH">Wuhan - Hubei, PR China</option>
+          <option value="WYN">Wyndham - Australia</option>
+
+          <option value="XMN">Xiamen - Fujian, PR China</option>
+          <option value="XIY">Xi'an - Xianyang - Shaanxi, PR China</option>
+          <option value="YKM">Yakima (WA) - USA</option>
+          <option value="YAK">Yakutat (AK) - USA</option>
+          <option value="YKS">Yakutsk - Russia</option>
+          <option value="GAJ">Yamagata, Junmachi - Japan</option>
+          <option value="ASK">Yamoussoukro - Côte d'Ivoire</option>
+          <option value="YNB">Yanbu - Saudi Arabia</option>
+          <option value="RGN">Yangon (Rangoon) - Mingaladon - Myanmar</option>
+          <option value="YAO">Yaounde - Cameroon</option>
+          <option value="YZF">Yellowknife - Canada</option>
+          <option value="SVX">Yekaterinburg - Koltsovo Airport - Russia</option>
+          <option value="YIH">Yichang - Hubei, PR China</option>
+          <option value="YOK">Yokohama - Japan</option>
+          <option value="YUM">Yuma (AZ) - USA</option>
+          <option value="ZCL">Zacatecas - Mexico</option>
+          <option value="ZAD">Zadar - Croatia (Hrvatska)</option>
+          <option value="ZAG">
+            Zagreb - Zagreb Airport Pleso - Croatia (Hrvatska)
+          </option>
+          <option value="ZTH">Zakynthos - Greece</option>
+          <option value="ZAZ">Zaragoza - Spain</option>
+          <option value="PZH">Zhob - Pakistan</option>
+          <option value="ZND">Zinder - Niger</option>
+          <option value="OUZ">Zouerate - Mauritania</option>
+          <option value="ZRH">Zurich (Zürich) - Kloten - Switzerland</option>
+        </select>
+        <br /><br />
+
+        <label for="to_place">To:</label>
+        <select
+          id="to_place"
+          name="to_place"
+          class="select2"
+          style="width: 100%"
+          required
+        ></select
+        ><br /><br />
+
+        <label for="departure_date">Departure Date:</label>
+        <input
+          type="date"
+          id="departure_date"
+          name="departure_date"
+          required
+        /><br /><br />
+
+        <label for="class">Class:</label>
+        <select id="class" name="class" required>
+          <option value="0">Economy</option>
+          <option value="1">Premium Economy</option>
+          <option value="2">Business</option>
+          <option value="3">First Class</option></select
+        ><br /><br />
+
+        <input id="search-btn" type="submit" value="Search" />
+        <!-- Loading animation -->
+        <img
+          id="loading-animation"
+          class="loading-animation"
+          src="{{ url_for('static', filename='air3.png') }}"
+          alt="Flying airplane"
+          width="100"
+          height="100"
+        />
+      </form>
+
+      <form
+        id="form2"
+        class="container"
+        action="/prediction_search"
+        method="post"
+        style="display: none"
+      >
+        <label for="p_airline">Airline:</label>
+        <select id="p_airline" name="p_airline" style="width: 100%" required>
+          <option value="">Select Departure Location</option>
+          <option value="Air Arabia">Air Arabia</option>
+          <option value="AirAsia">AirAsia</option>
+          <option value="Air India">Air India</option>
+          <option value="Air India Express">Air India Express</option>
+          <option value="Air New Zealand">Air New Zealand</option>
+          <option value="Akasa Air">Akasa Air</option>
+          <option value="Asiana">Asiana</option>
+          <option value="Alliance Air">Alliance Air</option>
+          <option value="Batik Air">Batik Air</option>
+          <option value="EgyptAir">EgyptAir</option>
+          <option value="Emirates">Emirates</option>
+          <option value="Etihad">Etihad</option>
+          <option value="flydubai">flydubai</option>
+          <option value="Gulf Air">Gulf Air</option>
+          <option value="IndiGo">IndiGo</option>
+          <option value="Jazeera">Jazeera</option>
+          <option value="Kuwait Airways">Kuwait Airways</option>
+          <option value="Lufthansa">Lufthansa</option>
+          <option value="Maldivian">Maldivian</option>
+          <option value="Malaysia Airlines">Malaysia Airlines</option>
+          <option value="Oman Air">Oman Air</option>
+          <option value="Qatar Airways">Qatar Airways</option>
+          <option value="Saudia">Saudia</option>
+          <option value="Singapore Airlines">Singapore Airlines</option>
+          <option value="SpiceJet">SpiceJet</option>
+          <option value="SriLankan">SriLankan</option>
+          <option value="THAI">THAI</option>
+          <option value="Thai AirAsia">Thai AirAsia</option>
+          <option value="Vistara">Vistara</option>
+        </select>
+        <br /><br />
+
+        <label for="from_place">From:</label>
+        <select
+          id="p_from_place"
+          name="p_from_place"
+          style="width: 100%"
+          required
+        >
+          <option value="">Select Departure Location</option>
+          <option value="COK">Cochin</option>
+        </select>
+        <br /><br />
+
+        <label for="to_place">To:</label>
+        <select id="p_to_place" name="p_to_place" style="width: 100%" required>
+          <option value="">Select Departure Location</option>
+          <option value="">Select Departure Location</option>
+          <option value="COK">Cochin</option>
+          <option value="TRV">Thiruvananthapuram</option>
+          <option value="DEL">New Delhi</option>
+          <option value="BOM">Mumbai</option>
+          <option value="BLR">Bengaluru</option>
+          <option value="HYD">Hyderabad</option>
+          <option value="MAA">Chennai</option>
+          <option value="CCU">Kolkata</option>
+          <option value="AMD">Ahmedabad</option>
+          <option value="GOX">Goa(GOX)</option>
+          <option value="PNQ">Pune</option>
+          >
+        </select>
+        <br /><br />
+
+        Duration:
+        <input
+          type="number"
+          id="p_duration"
+          name="p_duration"
+          required
+        /><br /><br />
+
+        Stops:
+        <input type="number" id="p_stops" name="p_stops" required /><br /><br />
+
+        <label for="p_Booking_date">Booking Date:</label>
+        <input
+          type="date"
+          id="p_Booking_date"
+          name="p_Booking_date"
+          required
+        /><br /><br />
+
+        <label for="departure_date">Departure Date:</label>
+        <input
+          type="date"
+          id="p_departure_date"
+          name="p_departure_date"
+          required
+        /><br /><br />
+
+        <input id="p_search-btn" type="submit" value="Search" />
+      </form>
+    </div>
+    <button
+      style="
+        transition-duration: 0.4s;
+        background-color: #4c4c4c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      "
+      onmouseover="this.style.backgroundColor='#04AA6D'"
+      onmouseout="this.style.backgroundColor='#4c4c4c'"
+      onclick="location.href='{{ url_for('trigger_daily_scrape') }}';"
+    >
+      Trigger Daily Scrape
+    </button>
+
+    <button
+      style="
+        transition-duration: 0.4s;
+        background-color: #4c4c4c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      "
+      onmouseover="this.style.backgroundColor='#04AA6D'"
+      onmouseout="this.style.backgroundColor='#4c4c4c'"
+      onclick="location.href='{{ url_for('update_Model') }}';"
+    >
+      Update Model
+    </button>
+
+    <button
+      style="
+        transition-duration: 0.4s;
+        background-color: #4c4c4c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      "
+      onmouseover="this.style.backgroundColor='#04AA6D'"
+      onmouseout="this.style.backgroundColor='#4c4c4c'"
+      onclick="window.open('/powerbi', '_blank');"
+    >
+      Open PowerBI
+    </button>
+    {% endif %} {% endif %}
+
+    <!-- Display prediction -->
+    {% if p_prediction %}
+    <div>
+      <table
+        border="1"
+        style="width: 40%; margin-left: auto; margin-right: auto"
+      >
+        <tr>
+          <th>Prediction</th>
+          <td>{{ p_prediction }}</td>
+        </tr>
+      </table>
+      <
+    </div>
+    {% endif %}
+    <!-- Flight search results -->
+    {% if flights_data %}
+    <div id="flight-results">
+      <h2>Info:</h2>
+      <table border="1" id="info" style="width: 50%">
+        <tbody>
+          <tr>
+            <td><b>Source</b></td>
+            <td>{{ from_place }}</td>
+          </tr>
+          <tr>
+            <td><b>Destination</b></td>
+            <td>{{ to_place }}</td>
+          </tr>
+          <tr>
+            <td><b>Date</b></td>
+            <td>{{ departure_date }}</td>
+          </tr>
+          <tr>
+            <td><b>Class</b></td>
+            <td>{{ classs }}</td>
+          </tr>
+          {% if flights_data.get('best_flights') %}
+          <tr>
+            <td><b>Departure Airport</b></td>
+            <td>{{ flights_data.best_flights[0].departure_airport }}</td>
+          </tr>
+          <tr>
+            <td><b>Arrival Airport</b></td>
+            <td>{{ flights_data.best_flights[0].arrival_airport }}</td>
+          </tr>
+          {% else %} {% if flights_data.get('all_flights') %}
+          <tr>
+            <td><b>Departure Airport</b></td>
+            <td>{{ flights_data.all_flights[0].departure_airport }}</td>
+          </tr>
+          <tr>
+            <td><b>Arrival Airport</b></td>
+            <td>{{ flights_data.all_flights[0].arrival_airport }}</td>
+          </tr>
+          {% endif %} {% endif %}
+        </tbody>
+      </table>
+
+      {% if flights_data.best_flights %}
+      <h2 style="color: rgb(202, 202, 202)">Best Flights</h2>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Company</th>
+            <th>Duration</th>
+            <th>Stops</th>
+            <th>Emissions</th>
+            <th>Emission Comparison</th>
+            <th>Price</th>
+            <th>Price Type</th>
+            <th>Prediction</th>
+            <th>Gauge Chart</th>
+            <!-- Add additional headers as needed -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for flight in flights_data.best_flights %}
+          <tr>
+            <td>{{ flight.departure_time }}</td>
+            <td>{{ flight.arrival_time }}</td>
+            <td>{{ flight.company }}</td>
+            <td>{{ flight.duration }}</td>
+            <td>{{ flight.stops }}</td>
+            <td>{{ flight.emissions }}</td>
+            <td>{{ flight.emission_comparison }}</td>
+            <td>{{ flight.price }}</td>
+            <td>{{ flight.price_type }}</td>
+            <td>
+              {{ flight.prediction if flight.prediction is not none else "N/A"
+              }}
+            </td>
+            <td>
+              {% if flight.prediction is not none %}
+              <!-- Container for the gauge chart -->
+              <div id="gauge-chart-best-{{ loop.index }}"></div>
+              <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                  // Calculate percentage for gauge chart
+                  var percentage;
+                  {% if flight.actual_price < flight.prediction %}
+                  percentage = {{ (flight.actual_price / flight.prediction) * 50 }};
+                  {% elif flight.actual_price > flight.prediction %}
+                  percentage = {{ 50 + ((flight.actual_price - flight.prediction) / flight.actual_price * 50) }};
+                  {% else %}
+                  percentage = 50;
+                  {% endif %}
+
+                  // Create gauge chart properties
+                  var gaugeProperties = {
+                    radius: 60,
+                    gaugeWidth: 10,
+                    percentage: percentage,
+                    color: "#EF7954",
+                    animationTime: 1500,
+                    fontSize: "15px",
+                    fontColor: "#7A7A7A",
+                    fontFamily: "Segoe ui light"
+                  };
+
+                  // Create and render the gauge chart
+                  var gauge = new AwesomeCharts.Gauge(gaugeProperties);
+                  gauge.RenderChart("#gauge-chart-best-{{ loop.index }}");
+                });
+              </script>
+              {% else %} N/A {% endif %}
+            </td>
+            <!-- Add additional columns as needed -->
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %} {% if flights_data.other_flights %}
+      <h2 style="color: rgb(202, 202, 202)">Other Flights</h2>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Company</th>
+            <th>Duration</th>
+            <th>Stops</th>
+            <th>Emissions</th>
+            <th>Emission Comparison</th>
+            <th>Price</th>
+            <th>Price Type</th>
+            <th>Prediction</th>
+            <th>Gauge Chart</th>
+            <!-- Add additional headers as needed -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for flight in flights_data.other_flights %}
+          <tr>
+            <td>{{ flight.departure_time }}</td>
+            <td>{{ flight.arrival_time }}</td>
+            <td>{{ flight.company }}</td>
+            <td>{{ flight.duration }}</td>
+            <td>{{ flight.stops }}</td>
+            <td>{{ flight.emissions }}</td>
+            <td>{{ flight.emission_comparison }}</td>
+            <td>{{ flight.price }}</td>
+            <td>{{ flight.price_type }}</td>
+            <td>
+              {{ flight.prediction if flight.prediction is not none else "N/A"
+              }}
+            </td>
+            <td>
+              {% if flight.prediction is not none %}
+              <!-- Container for the gauge chart -->
+              <div id="gauge-chart-other-{{ loop.index }}"></div>
+              <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                  // Calculate percentage for gauge chart
+                  var percentage;
+                  {% if flight.actual_price < flight.prediction %}
+                  percentage = {{ (flight.actual_price / flight.prediction) * 50 }};
+                  {% elif flight.actual_price > flight.prediction %}
+                  percentage = {{ 50 + ((flight.actual_price - flight.prediction) / flight.actual_price * 50) }};
+                  {% else %}
+                  percentage = 50;
+                  {% endif %}
+
+                  // Create gauge chart properties
+                  var gaugeProperties = {
+                    radius: 60,
+                    gaugeWidth: 10,
+                    percentage: percentage,
+                    color: "#EF7954",
+                    animationTime: 1500,
+                    fontSize: "15px",
+                    fontColor: "#7A7A7A",
+                    fontFamily: "Segoe ui light"
+                  };
+
+                  // Create and render the gauge chart
+                  var gauge = new AwesomeCharts.Gauge(gaugeProperties);
+                  gauge.RenderChart("#gauge-chart-other-{{ loop.index }}");
+                });
+              </script>
+              {% else %} N/A {% endif %}
+            </td>
+            <!-- Add additional columns as needed -->
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %} {% if flights_data.all_flights %}
+      <h2 style="color: rgb(202, 202, 202)">All Flights</h2>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Company</th>
+            <th>Duration</th>
+            <th>Stops</th>
+            <th>Emissions</th>
+            <th>Emission Comparison</th>
+            <th>Price</th>
+            <th>Price Type</th>
+            <th>Prediction</th>
+            <th>Gauge Chart</th>
+            <!-- Add additional headers as needed -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for flight in flights_data.all_flights %}
+          <tr>
+            <td>{{ flight.departure_time }}</td>
+            <td>{{ flight.arrival_time }}</td>
+            <td>{{ flight.company }}</td>
+            <td>{{ flight.duration }}</td>
+            <td>{{ flight.stops }}</td>
+            <td>{{ flight.emissions }}</td>
+            <td>{{ flight.emission_comparison }}</td>
+            <td>{{ flight.price }}</td>
+            <td>{{ flight.price_type }}</td>
+            <td>
+              {{ flight.prediction if flight.prediction is not none else "N/A"
+              }}
+            </td>
+            <td>
+              {% if flight.prediction is not none %}
+              <!-- Container for the gauge chart -->
+              <div id="gauge-chart-all-{{ loop.index }}"></div>
+              <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                  // Calculate percentage for gauge chart
+                  var percentage;
+                  {% if flight.actual_price < flight.prediction %}
+                  percentage = {{ (flight.actual_price / flight.prediction) * 50 }};
+                  {% elif flight.actual_price > flight.prediction %}
+                  percentage = {{ 50 + ((flight.actual_price - flight.prediction) / flight.actual_price * 50) }};
+                  {% else %}
+                  percentage = 50;
+                  {% endif %}
+
+                  // Create gauge chart properties
+                  var gaugeProperties = {
+                    radius: 60,
+                    gaugeWidth: 10,
+                    percentage: percentage,
+                    color: "#EF7954",
+                    animationTime: 1500,
+                    fontSize: "15px",
+                    fontColor: "#7A7A7A",
+                    fontFamily: "Segoe ui light"
+                  };
+
+                  // Create and render the gauge chart
+                  var gauge = new AwesomeCharts.Gauge(gaugeProperties);
+                  gauge.RenderChart("#gauge-chart-all-{{ loop.index }}");
+                });
+              </script>
+              {% else %} N/A {% endif %}
+            </td>
+            <!-- Add additional columns as needed -->
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var toggleButtons = document.querySelectorAll(".btn-toggle");
+        var form1 = document.getElementById("flight-search-form");
+        var form2 = document.getElementById("form2");
+        var activeForm = form1;
+        var activeButton;
+
+        toggleButtons.forEach(function (toggleButton) {
+          toggleButton.addEventListener("click", function () {
+            activeForm.style.display = "none";
+            activeForm = activeForm === form1 ? form2 : form1;
+            activeForm.style.display = "block";
+
+            toggleButtons.forEach(function (btn) {
+              if (btn === toggleButton && activeForm === form2) {
+                btn.classList.add("active");
+                btn.setAttribute("aria-pressed", "true");
+                activeButton = btn;
+              } else {
+                btn.classList.remove("active");
+                btn.setAttribute("aria-pressed", "false");
+              }
+            });
+          });
+        });
+
+        // Add event listener for form 1 submission
+        if (form1) {
+          form1.addEventListener("submit", function () {
+            var searchBtn = document.getElementById("search-btn");
+            var loadingAnimation = document.getElementById("loading-animation");
+            if (searchBtn && loadingAnimation) {
+              searchBtn.style.display = "none"; // Hide search button
+              loadingAnimation.style.display = "block"; // Show loading animation
+            }
+          });
+        }
+
+        // Add event listener for form 2 submission
+        if (form2) {
+          form2.addEventListener("submit", function () {
+            var searchBtn = document.getElementById("p_search-btn");
+            var loadingAnimation = document.getElementById("loading-animation");
+            if (searchBtn && loadingAnimation) {
+              searchBtn.style.display = "none"; // Hide search button
+              loadingAnimation.style.display = "block"; // Show loading animation
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
