@@ -1,5 +1,6 @@
 # Btech Main Project
- Airline Data Analysis and Prediction System
+ **Airline Data Analysis and Prediction System.**
+ 
 This project involves web scraping flight data from Google Flights to train an incremental LSTM model for predicting future airfare prices. 
 
 • It aims to provide users with accurate price predictions for specific routes and travel dates, helping them make informed travel budgeting decisions.  
